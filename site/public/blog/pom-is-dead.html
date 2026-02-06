@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why POM is Dead - Engineering Log - QAi Talks</title>
+    <meta name="description"
+        content="Exploring how the Screenplay pattern and Component-based testing are rendering the traditional POM obsolete in modern frameworks.">
+    <link rel="icon" type="image/svg+xml" href="../branding/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Indie+Flower&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --obsidian-navy: #001B44;
+            --ai-amber: #FFB700;
+            --academy-teal: #00B4D8;
+            --bg-cloud: #F8FAFC;
+            --surface-white: #FFFFFF;
+            --text-slate: #1E293B;
+            --growth-green: #22C55E;
+            --purple-accent: #6366F1;
+
+            --base-surface: var(--bg-cloud);
+            --deep-blueprint: var(--obsidian-navy);
+            --logic-cyan: var(--academy-teal);
+            --warning-amber: var(--ai-amber);
+            --grid-major: 16px;
+            --font-primary: 'Inter', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+            --font-hand: 'Indie Flower', cursive;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--base-surface);
+            color: var(--deep-blueprint);
+            font-family: var(--font-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* Technical Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(10, 37, 64, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 37, 64, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(246, 249, 252, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(10, 37, 64, 0.1);
+        }
+
+        nav .container {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-decoration: none;
+            color: var(--deep-blueprint);
+        }
+
+        .nav-links a {
+            margin-left: 32px;
+            text-decoration: none;
+            color: var(--deep-blueprint);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--logic-cyan);
+        }
+
+        /* Article Layout */
+        .article-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 64px;
+            padding: 140px 0 80px;
+        }
+
+        .article-content {
+            background: white;
+            padding: 64px;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(10, 37, 64, 0.05);
+            border: 1px solid rgba(10, 37, 64, 0.1);
+            position: relative;
+        }
+
+        /* Header Styles */
+        .post-meta {
+            font-family: var(--font-code);
+            font-size: 0.875rem;
+            color: var(--purple-accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            color: var(--deep-blueprint);
+        }
+
+        .post-lead {
+            font-size: 1.25rem;
+            opacity: 0.8;
+            margin-bottom: 48px;
+            border-left: 4px solid var(--logic-cyan);
+            padding-left: 24px;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 2rem;
+            margin: 48px 0 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(10, 37, 64, 0.1);
+        }
+
+        p {
+            margin-bottom: 24px;
+            font-size: 1.125rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--deep-blueprint);
+            color: #E2E8F0;
+            padding: 24px;
+            border-radius: 4px;
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+            overflow-x: auto;
+            border-left: 4px solid var(--logic-cyan);
+        }
+
+        code {
+            font-family: var(--font-code);
+            background: rgba(10, 37, 64, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        /* Sidebar / TOC */
+        .sidebar {
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+
+        .toc-title {
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+            color: #888;
+        }
+
+        .toc-links {
+            list-style: none;
+        }
+
+        .toc-links li {
+            margin-bottom: 12px;
+        }
+
+        .toc-links a {
+            text-decoration: none;
+            color: var(--deep-blueprint);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .toc-links a:hover {
+            color: var(--logic-cyan);
+            transform: translateX(4px);
+        }
+
+        /* Annotations */
+        .annotation {
+            font-family: var(--font-hand);
+            color: var(--logic-cyan);
+            font-size: 1.25rem;
+            position: absolute;
+            font-weight: 700;
+            z-index: 10;
+            animation: float 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(-2deg);
+            }
+
+            50% {
+                transform: translateY(-5px) rotate(-1deg);
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--deep-blueprint) 0%, #051829 100%);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 80px 0 40px;
+            margin-top: 80px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 64px;
+            margin-bottom: 64px;
+        }
+
+        .footer-brand h3 {
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--logic-cyan);
+        }
+
+        .footer-bottom {
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--warning-amber) 0%, #FFC933 100%);
+            color: var(--deep-blueprint);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            border: 2px solid var(--deep-blueprint);
+            border-radius: 4px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 8px 8px 0 rgba(255, 184, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0 rgba(255, 184, 0, 0.4);
+        }
+
+        #cta {
+            text-align: center;
+            background: linear-gradient(135deg, var(--deep-blueprint) 0%, #0D2F4F 100%);
+            color: white;
+            padding: 80px 0;
+            margin-top: 64px;
+        }
+
+        #cta h2 {
+            color: white;
+            font-size: 2.25rem;
+            margin-bottom: 16px;
+        }
+
+        .cta-subtitle {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .cta-highlight {
+            display: inline-block;
+            background: rgba(255, 184, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--warning-amber);
+            margin-top: 24px;
+            font-family: var(--font-code);
+        }
+
+        /* Footer Restoration */
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--logic-cyan) 0%, transparent 50%, var(--warning-amber) 100%);
+        }
+
+        .footer-brand p {
+            max-width: 300px;
+            margin-bottom: 32px;
+            opacity: 0.7;
+        }
+
+        .social-nodes {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .social-node {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--logic-cyan);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-family: var(--font-code);
+            font-weight: 600;
+        }
+
+        .social-node:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--logic-cyan);
+            transform: translateY(-4px);
+        }
+
+        .footer-section h4 {
+            color: var(--logic-cyan);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            font-weight: 700;
+            font-family: var(--font-code);
+        }
+
+        .footer-links a {
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 8px;
+        }
+
+        .footer-links a::before {
+            content: '>';
+            position: absolute;
+            left: -10px;
+            opacity: 0;
+            color: var(--warning-amber);
+            font-family: var(--font-code);
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover::before {
+            opacity: 1;
+            left: 0;
+        }
+
+        .newsletter-form {
+            position: relative;
+        }
+
+        .newsletter-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            color: white;
+            font-family: var(--font-code);
+            font-size: 0.875rem;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--deep-blueprint);
+            border: 1px solid var(--logic-cyan);
+            color: var(--logic-cyan);
+            font-family: var(--font-code);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .newsletter-btn:hover {
+            background: var(--logic-cyan);
+            color: var(--deep-blueprint);
+        }
+
+        @media (max-width: 1024px) {
+            .article-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .article-content {
+                padding: 32px 24px;
+            }
+
+            .post-title {
+                font-size: 2rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="nav-logo">
+                <img src="../branding/logo.svg" alt="QAi Talks" style="height: 60px;">
+            </a>
+            <div class="nav-links">
+                <a href="../about.html">About</a>
+                <a href="../curriculum.html">Curriculum</a>
+                <a href="../blog.html" class="active-link">Blog</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="article-wrapper">
+            <main class="article-content">
+                <span class="annotation" style="right: 40px; top: 60px; color: var(--warning-amber);">Architectural
+                    Insight</span>
+
+                <header>
+                    <div class="post-meta">
+                        <span>OCT 24, 2026</span>
+                        <span style="opacity: 0.3;">/</span>
+                        <span>PERFORMANCE & ARCHITECTURE</span>
+                        <span style="opacity: 0.3;">/</span>
+                        <span>V2.1.0</span>
+                    </div>
+                    <h1 class="post-title">Why Page Object Model is Dead</h1>
+                    <p class="post-lead">Exploring how the Screenplay pattern and Component-based testing are rendering
+                        the traditional POM obsolete in modern frameworks.</p>
+                </header>
+
+                <section id="introduction">
+                    <p>For over a decade, the Page Object Model (POM) has been the de-facto standard for Selenium-based
+                        automation. It successfully solved the problem of code duplication by encapsulating
+                        page-specific elements and actions into reusable classes. However, as applications moved from
+                        static pages to dynamic, component-based architectures (React, Vue, Svelte), the POM started to
+                        crack.</p>
+                </section>
+
+                <section id="the-problem">
+                    <h2 id="cracks-in-pom">The "God Class" Problem</h2>
+                    <p>In a complex application, a single "Page Object" can easily grow to thousands of lines. When a
+                        login page includes 2FA, social logins, and account recovery, your <code>LoginPage.java</code>
+                        becomes a "God Class" that is difficult to maintain and nearly impossible to unit test.</p>
+                    <pre><code>// The bloated POM anti-pattern
+public class LoginPage {
+    @FindBy(id = "user") WebElement username;
+    // ... 50 more elements
+    
+    public void login() { ... }
+    public void socialLogin() { ... }
+    public void handleTwoFactor() { ... }
+    // ... 20 more methods
+}</code></pre>
+                </section>
+
+                <section id="the-alternative">
+                    <h2 id="screenplay-pattern">Enter the Screenplay Pattern</h2>
+                    <p>Screenplay (also known as the Journey Pattern) applies SOLID principles to test automation.
+                        Instead of modeling <em>pages</em>, we model <em>Actors</em>, <em>Tasks</em>, and
+                        <em>Interactions</em>. This decouples who is performing the action from what they are doing.
+                    </p>
+
+                    <span class="annotation" style="left: -10px; bottom: 100px; transform: rotate(-5deg);">Better SOLID
+                        adherence!</span>
+
+                    <pre><code>// Actor-based testing
+Actor james = Actor.named("James");
+james.can(BrowseTheWeb.with(browser));
+
+james.attemptsTo(
+    Login.as(user),
+    NavigateTo.dashboard()
+);</code></pre>
+                </section>
+
+                <section id="conclusion">
+                    <h2 id="summary">Summary</h2>
+                    <p>The transition from POM to Screenplay or Component-based testing isn't just a trend; it's a
+                        necessity for scaling modern test suites. By focusing on intent rather than implementation, we
+                        create tests that are as robust as the systems they verify.</p>
+                </section>
+            </main>
+
+            <aside class="sidebar">
+                <div class="toc-title">On this page</div>
+                <ul class="toc-links">
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#cracks-in-pom">The God Class Problem</a></li>
+                    <li><a href="#screenplay-pattern">The Screenplay Pattern</a></li>
+                    <li><a href="#summary">Summary</a></li>
+                </ul>
+            </aside>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <section id="cta">
+        <div class="container">
+            <h2>Ready to Engineer Your Future?</h2>
+            <p class="cta-subtitle">Join the cohort of elite engineers building the future of quality assurance.</p>
+            <a href="../curriculum.html" class="btn">View Full Curriculum</a>
+            <div class="cta-highlight">Limited Intake: Next Cohort Starting Soon</div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="position: relative; overflow: hidden;">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3>
+                        <img src="../branding/logo.svg" alt="QAi Talks"
+                            style="height: 60px; filter: brightness(0) invert(1);">
+                    </h3>
+                    <p>Refining the engineering standards for quality assurance professionals worldwide. Built for the
+                        modern stack.</p>
+                    <div class="social-nodes">
+                        <a href="#" class="social-node">GH</a>
+                        <a href="#" class="social-node">LI</a>
+                        <a href="#" class="social-node">X</a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Programme</h4>
+                    <ul class="footer-links">
+                        <li><a href="../curriculum.html">Syllabus</a></li>
+                        <li><a href="../about.html">Mentorship</a></li>
+                        <li><a href="../blog.html">Engineering Log</a></li>
+                        <li><a href="#">Tuition & FAQ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="../about.html">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Partners</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>System Access</h4>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter your email" class="newsletter-input">
+                        <button type="button" class="newsletter-btn">Connect</button>
+                    </form>
+                    <p style="font-size: 0.75rem; margin-top: 16px; opacity: 0.5;">Join 5,000+ engineers receiving
+                        weekly architecture patterns.</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="copyright">
+                    <p>© 2026 QAi Talks Ltd. All rights reserved.</p>
+                </div>
+                <div class="system-status">
+                    <span>SYSTEM STATUS:</span>
+                    <span style="color: #10B981; font-weight: 600;">ONLINE</span>
+                    <span class="status-dot" style="animation: pulse 2s infinite;"></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

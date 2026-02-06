@@ -1,0 +1,15 @@
+# Cloudflare Pages Configuration
+name = "qaitalks"
+compatibility_date = "2026-02-06"
+
+# Pages project settings
+pages_build_output_dir = "site/public"
+
+# Environment variables (add secrets via Cloudflare dashboard)
+# Use: wrangler pages secret put SECRET_NAME
+
+[env.production]
+# Production environment configuration
+
+[env.staging]
+# Staging environment configuration
