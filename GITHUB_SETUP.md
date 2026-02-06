@@ -45,7 +45,7 @@ After creating the GitHub repository, connect it:
 
 ```bash
 # Replace YOUR-USERNAME with your GitHub username
-git remote add origin https://github.com/YOUR-USERNAME/qaitalks.git
+git remote add origin https://github.com/vishaltailor01/qaitalks.git
 
 # Set main branch
 git branch -M main

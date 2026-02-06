@@ -28,7 +28,31 @@
 
 ### Build & Deployment
 - **Static Site Generation (SSG)** — Current: Stitch MCP generates to `queue/`, manual review, move to `site/public/`. Future: Next.js ISR (Incremental Static Regeneration).
-- **Version Control** — Git strategy: `main` (production), `develop` (staging), feature branches (`feat/page-name`). Commit convention: `type(scope): description` (e.g., `feat(blog): add new post`).
+- **Version Control** — Git strategy: Three core branches plus feature branches. Workflow:
+  - **`main`** (production) — Stable, deployed to qaitalks.com
+  - **`develop`** (staging) — Integration branch, tested before merging to main
+  - **Feature/fix branches** — Created from `develop`, one per feature/fix
+  
+  **Branching Process:**
+  1. Start new work: `git checkout -b feat/feature-name` (from develop)
+  2. Commit with convention: `type(scope): description` (e.g., `feat(careers): add careers page`, `fix(nav): broken link`)
+  3. Push: `git push origin feat/feature-name`
+  4. Create Pull Request (PR) on GitHub: `feat/feature-name` → `develop`
+  5. Code review & testing completed
+  6. Merge to develop: `git merge feat/feature-name`
+  7. Deploy & test on staging: https://develop.qaitalks.pages.dev
+  8. Create release PR: `develop` → `main`
+  9. Final approval → Merge to main → Auto-deploy to production
+  
+  **Branch Naming Patterns:**
+  - `feat/page-name` — New features (e.g., `feat/careers-page`)
+  - `fix/description` — Bug fixes (e.g., `fix/header-styling`)
+  - `docs/description` — Documentation updates (e.g., `docs/api-guide`)
+  - `refactor/description` — Code restructuring (e.g., `refactor/css-organization`)
+  - `perf/description` — Performance improvements (e.g., `perf/image-optimization`)
+  
+  **Commit Convention:** `type(scope): description [issue #N]`
+  - Examples: `feat(curriculum): add accordion animations #42`, `fix(blog): broken blog post links`
 - **CI/CD Pipelines** — GitHub Actions recommended: lint HTML, run Lighthouse audits, test links, deploy to Cloudflare Pages (recommended, domain already on Cloudflare) or Vercel/GitHub Pages. Example: validate before merging to `main`.
 - **Environment Management** — Use `.env.local` (never commit). Store: API keys, database URLs, analytics tokens. Use `process.env` in Node.js; Cloudflare Workers use `env` binding. Access client-side carefully (prefix with `NEXT_PUBLIC_` in Next.js).
 
