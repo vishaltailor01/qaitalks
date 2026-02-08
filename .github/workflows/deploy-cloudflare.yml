@@ -104,38 +104,62 @@ jobs:
         run: npm ci
         working-directory: next-app
 
-      - name: Install Lighthouse
-        run: npm install -g @lhci/cli@latest
-
       - name: Build Next.js app
         run: npm run build
         working-directory: next-app
 
-      - name: Run production server
+      - name: Start production server
         run: |
-          npm run start -- --port 3000 > /dev/null 2>&1 &
-          sleep 5
+          npm run start -- --port 3000 > /tmp/server.log 2>&1 &
+          sleep 8
         working-directory: next-app
+
+      - name: Wait for server to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Server is ready"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30)"
+            sleep 1
+          done
+          echo "❌ Server failed to start"
+          cat /tmp/server.log
+          exit 1
 
       - name: Run Lighthouse audit
         run: |
           echo "🚀 Running Lighthouse audit..."
-          lighthouse http://localhost:3000 \
-            --chrome-flags="--headless --no-sandbox" \
-            --output-path=lighthouse-results.json \
-            --output=json
+          npx lighthouse@latest http://localhost:3000 \
+            --chrome-flags="--headless --no-sandbox --disable-gpu" \
+            --output-path=./lighthouse-results.json \
+            --output=json \
+            --quiet
           echo "✅ Lighthouse audit complete"
         working-directory: next-app
+        continue-on-error: true
 
       - name: Display Lighthouse scores
         run: |
-          node -e "
-          const data = require('./lighthouse-results.json');
-          console.log('\n📊 Lighthouse Scores:');
-          Object.entries(data.categories).forEach(([key, val]) => {
-            console.log('  ' + key + ': ' + (val.score * 100).toFixed(0) + '/100');
-          });
-          "
+          if [ -f ./lighthouse-results.json ]; then
+            echo ""
+            echo "📊 Lighthouse Scores:"
+            node -e "
+            try {
+              const data = require('./lighthouse-results.json');
+              Object.entries(data.categories).forEach(([key, val]) => {
+                const score = Math.round((val.score || 0) * 100);
+                const bar = score >= 90 ? '🟢' : score >= 50 ? '🟡' : '🔴';
+                console.log(bar + ' ' + key + ': ' + score + '/100');
+              });
+            } catch(e) {
+              console.log('Error parsing Lighthouse results:', e.message);
+            }
+            "
+          else
+            echo "⚠️ Lighthouse report not found"
+          fi
         working-directory: next-app
         continue-on-error: true
 
