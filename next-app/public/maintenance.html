@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maintenance</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Georgia", "Times New Roman", serif;
+        background: linear-gradient(135deg, #f6f2e9 0%, #efe4d7 100%);
+        color: #2c231a;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+
+      .card {
+        max-width: 720px;
+        margin: 24px;
+        padding: 36px 40px;
+        background: #fff7ed;
+        border: 1px solid #e3d1bd;
+        box-shadow: 0 24px 60px rgba(44, 35, 26, 0.15);
+      }
+
+      h1 {
+        font-size: 32px;
+        margin: 0 0 12px;
+        letter-spacing: 0.5px;
+      }
+
+      p {
+        margin: 8px 0;
+        font-size: 18px;
+        line-height: 1.6;
+      }
+
+      .meta {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #6b4f3b;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .pulse {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: #c05621;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(0.8); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="status" aria-live="polite">
+      <div class="meta"><span class="pulse" aria-hidden="true"></span>Maintenance</div>
+      <h1>We are doing some upgrades.</h1>
+      <p>QAi Talks is temporarily offline while we improve performance and reliability.</p>
+      <p>Please check back soon. Thank you for your patience.</p>
+      <p class="meta">Status: scheduled maintenance</p>
+    </main>
+  </body>
+</html>
