@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
-import { prisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
 
 async function getBlogPosts() {
+  const prisma = getPrisma()
   return prisma.blogPost.findMany({
     where: { published: true },
     include: { author: true },

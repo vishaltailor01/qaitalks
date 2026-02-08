@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-import { prisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db"
 import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
+    const prisma = getPrisma()
     const posts = await prisma.blogPost.findMany({
       where: { published: true },
       include: {

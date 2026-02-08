@@ -3,39 +3,64 @@ import { PrismaD1 } from "@prisma/adapter-d1"
 
 const globalForPrisma = global as unknown as { prisma?: PrismaClient }
 
-// Check if we're running on Cloudflare with D1 database binding
-const getD1Database = (): Record<string, unknown> | null => {
+/**
+ * Lazily initialize Prisma Client with the appropriate adapter
+ * - Cloudflare Pages: Uses D1 adapter for D1 database
+ * - Local/Vercel: Uses Prisma Data Proxy (Accelerate) or standard PrismaClient
+ * 
+ * Note: Prisma 7 requires DATABASE_URL or an adapter. For local dev with SQLite,
+ * we recommend setting PRISMA_CLIENT_ENGINE_TYPE=dataproxy and using Accelerate,
+ * or downgrading to Prisma 6.
+ */
+/**
+ * Lazily initialize Prisma Client with the appropriate adapter
+ * - Cloudflare Pages: Uses D1 adapter for D1 database
+ * - Local/Vercel: Uses standard Prisma Client with SQLite via DATABASE_URL
+ */
+const createPrismaClient = (): PrismaClient => {
+  // Check for D1 binding (Cloudflare Pages environment)
   const globalThis_ = globalThis as unknown as Record<string, unknown>
-  const db = globalThis_.DB
-  // D1 binding is an object with execute method, not a string
-  if (db && typeof db === "object" && !Array.isArray(db)) {
-    return db as Record<string, unknown>
-  }
-  return null
-}
+  const d1Database = globalThis_.DB
 
-// Use D1 adapter if running on Cloudflare (DB binding available)
-// Otherwise use standard Prisma Client for local development/Vercel
-const createPrismaClient = () => {
-  const d1Db = getD1Database()
-  if (d1Db) {
+  if (d1Database && typeof d1Database === "object" && !Array.isArray(d1Database)) {
     // Cloudflare Pages with D1 binding
     return new PrismaClient({
-      adapter: new PrismaD1(d1Db as never),
-      log: process.env.NODE_ENV === "development" ? ["query"] : [],
-    })
-  } else {
-    // Local development or Vercel deployment (uses DATABASE_URL env var)
-    return new PrismaClient({
+      adapter: new PrismaD1(d1Database as never),
       log: process.env.NODE_ENV === "development" ? ["query"] : [],
     })
   }
+
+  // Local development or Vercel (uses DATABASE_URL env var)
+  // DATABASE_URL should be: file:path (SQLite) or postgresql://... (PostgreSQL)
+  const databaseUrl = process.env.DATABASE_URL
+  
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL environment variable is not set. " +
+      "For local development, set DATABASE_URL in .env.local (e.g., file:./prisma/dev.db)"
+    )
+  }
+
+  // Prisma 6 with SQLite works automatically with DATABASE_URL
+  return new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query"] : [],
+  })
 }
 
-const prisma = globalForPrisma.prisma || createPrismaClient()
+// Singleton pattern with lazy initialization
+let prismaInstance: PrismaClient | undefined = undefined
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma
+export const getPrisma = (): PrismaClient => {
+  if (!prismaInstance) {
+    if (globalForPrisma.prisma) {
+      prismaInstance = globalForPrisma.prisma
+    } else {
+      prismaInstance = createPrismaClient()
+      // Cache globally for development to reuse connection
+      if (process.env.NODE_ENV !== "production") {
+        globalForPrisma.prisma = prismaInstance
+      }
+    }
+  }
+  return prismaInstance
 }
-
-export { prisma }

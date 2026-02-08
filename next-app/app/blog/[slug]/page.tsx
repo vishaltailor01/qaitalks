@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { prisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
 import DOMPurify from "isomorphic-dompurify"
 
@@ -13,6 +13,7 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const prisma = getPrisma()
   const post = await prisma.blogPost.findUnique({
     where: { slug },
     include: {

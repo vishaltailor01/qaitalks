@@ -4,7 +4,7 @@ import NextAuth from "next-auth/next"
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { prisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db"
 
 // Conditionally register providers only if credentials are set
 const providers = []
@@ -35,7 +35,7 @@ if (providers.length === 0 && process.env.NODE_ENV === 'development') {
 }
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(getPrisma()),
   providers,
   pages: {
     signIn: "/login",

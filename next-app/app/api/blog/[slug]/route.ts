@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-import { prisma } from "@/lib/db"
+import { getPrisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
@@ -9,6 +10,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
+    const prisma = getPrisma()
     const post = await prisma.blogPost.findUnique({
       where: { slug },
       include: {
