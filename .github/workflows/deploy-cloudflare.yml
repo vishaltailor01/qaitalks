@@ -66,11 +66,12 @@ jobs:
         working-directory: next-app
 
   # Job 3: Deploy to staging (develop branch)
+  # NOTE: Disabled - static site removed, use Vercel/Cloudflare for Next.js deployment
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && hashFiles('site/public/**') != ''
+    if: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,11 +88,12 @@ jobs:
           echo "✅ Deployed to staging: https://develop.qaitalks.pages.dev"
 
   # Job 4: Deploy to production (main branch, requires validation + lighthouse)
+  # NOTE: Disabled - static site removed, use Vercel/Cloudflare for Next.js deployment
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [validate, lighthouse]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('site/public/**') != ''
+    if: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
