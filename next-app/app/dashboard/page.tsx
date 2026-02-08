@@ -10,28 +10,8 @@ export default async function Dashboard() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-deep-blueprint">
-            QAi Talks
-          </Link>
-          <div className="flex gap-4 items-center">
-            <Link href="/blog" className="text-slate-700 hover:text-deep-blueprint">
-              Blog
-            </Link>
-            <Link href="/dashboard" className="text-deep-blueprint font-semibold">
-              Dashboard
-            </Link>
-            <Link href="/api/auth/signout" className="px-4 py-2 bg-deep-blueprint text-white rounded">
-              Sign Out
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Page Header */}
-      <section className="bg-deep-blueprint text-white py-12">
+      <section className="bg-deep-blueprint text-white py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold mb-2">Welcome to Your Dashboard!</h1>
           <p className="text-blue-100">Track your learning progress and access resources</p>
@@ -98,13 +78,6 @@ export default async function Dashboard() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-deep-blueprint text-white py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2026 QAi Talks. All rights reserved.</p>
-        </div>
-      </footer>
     </main>
   )
 }

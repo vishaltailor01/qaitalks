@@ -185,8 +185,8 @@ NEXTAUTH_URL="http://localhost:3000"
 # OAuth Providers (optional)
 GITHUB_ID="your-github-app-id"
 GITHUB_SECRET="your-github-secret"
-GOOGLE_ID="your-google-client-id"
-GOOGLE_SECRET="your-google-secret"
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 Generate `NEXTAUTH_SECRET`:

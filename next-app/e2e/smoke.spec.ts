@@ -61,10 +61,19 @@ test.describe('Critical User Flows', () => {
       const imageCount = await images.count();
       
       for (let i = 0; i < imageCount; i++) {
-        const src = await images.nth(i).getAttribute('src');
-        // Check that images have src attribute
+        const img = images.nth(i);
+        const src = await img.getAttribute('src');
+        
+        // Skip data URLs and check that images have src
         if (src && !src.startsWith('data:')) {
           expect(src).toBeTruthy();
+          
+          // Check that image loaded successfully by verifying naturalWidth > 0
+          const isLoaded = await img.evaluate((el: HTMLImageElement) => {
+            return el.complete && el.naturalWidth > 0;
+          });
+          
+          expect(isLoaded).toBeTruthy();
         }
       }
     }

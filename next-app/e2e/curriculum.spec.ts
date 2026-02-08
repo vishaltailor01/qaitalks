@@ -45,10 +45,10 @@ test.describe('Curriculum Page', () => {
     await moduleButton.click();
     await page.waitForTimeout(300);
     
-    // Check for topics/content
+    // Check for topics/content - should have at least 1 topic after expanding
     const topics = page.locator('li, .topic, [role="listitem"]');
     const topicCount = await topics.count();
-    expect(topicCount).toBeGreaterThanOrEqual(0);
+    expect(topicCount).toBeGreaterThanOrEqual(1);
   });
 
   test('should have navigation back to home', async ({ page }) => {

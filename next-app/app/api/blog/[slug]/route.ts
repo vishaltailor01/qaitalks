@@ -5,14 +5,20 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const { slug } = await params
+    const { slug } = params
     const post = await prisma.blogPost.findUnique({
       where: { slug },
       include: {
-        author: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
     })
 

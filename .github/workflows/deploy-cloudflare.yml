@@ -41,7 +41,7 @@ jobs:
       - name: Run unit tests (Jest)
         run: npm run test -- --ci --coverage
         working-directory: next-app
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
 
   # Job 2: E2E Tests (Playwright)
   e2e-tests:
@@ -74,7 +74,7 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
         working-directory: next-app
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
 
       - name: Upload Playwright report
         if: always()
@@ -179,19 +179,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'next-app/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: next-app
+
+      - name: Build Next.js app
+        run: npm run build
+        working-directory: next-app
+
       - name: Deploy to Cloudflare Pages (Staging)
-        run: |
-          echo "🚀 Deploying to Cloudflare Pages (staging)..."
-          echo "Branch: develop"
-          echo "URL: https://develop.qaitalks.pages.dev"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy next-app/.next --project-name=qaitalks --branch=develop
 
       - name: Notify deployment
         run: |
-          echo "✅ Staging deployment prepared"
-          echo "⏳ Configure Cloudflare Pages for auto-deployment"
+          echo "✅ Staging deployed: https://develop.qaitalks.pages.dev"
 
   # Job 5: Deploy to Production (main branch)
   deploy-production:
@@ -203,17 +215,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'next-app/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: next-app
+
+      - name: Build Next.js app
+        run: npm run build
+        working-directory: next-app
+
       - name: Deploy to Cloudflare Pages (Production)
-        run: |
-          echo "🚀 Deploying to Cloudflare Pages (production)..."
-          echo "Branch: main"
-          echo "URL: https://main.qaitalks.pages.dev"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy next-app/.next --project-name=qaitalks --branch=main
 
       - name: Notify production deployment
         run: |
-          echo "✅ Production deployment prepared"
-          echo "🌐 Live at: https://qaitalks.pages.dev"
-          echo "⏳ Configure Cloudflare Pages for auto-deployment"
+          echo "✅ Production live: https://qaitalks.pages.dev"

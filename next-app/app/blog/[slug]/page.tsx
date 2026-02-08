@@ -9,12 +9,20 @@ import { formatDate } from "@/lib/utils"
 export default async function BlogPostPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }) {
-  const { slug } = await params
+  const { slug } = params
   const post = await prisma.blogPost.findUnique({
     where: { slug },
-    include: { author: true },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
   })
 
   if (!post) {
@@ -45,6 +53,7 @@ export default async function BlogPostPage({
             </header>
 
             {/* Article Content */}
+            {/* TODO: For production, replace dangerouslySetInnerHTML with a markdown renderer (e.g., react-markdown) or sanitize HTML with DOMPurify */}
             <div
               id="content"
               className="prose prose-lg prose-slate max-w-none
@@ -80,7 +89,7 @@ export default async function BlogPostPage({
                       {post.author.name || 'Anonymous'}
                     </div>
                     <div className="text-sm text-slate-600">
-                      {post.author.email}
+                      Article Author
                     </div>
                   </div>
                 </div>
