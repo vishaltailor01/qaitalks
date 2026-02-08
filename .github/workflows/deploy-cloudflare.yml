@@ -28,13 +28,18 @@ jobs:
         run: npm ci
         working-directory: next-app
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
+
       - name: Lint (Next.js)
         run: npm run lint
         working-directory: next-app
 
       - name: Type check (Next.js)
         run: npm run type-check
-        working-directory: next-app
 
   # Job 2: Run Lighthouse performance audit (production branch only)
   lighthouse:
@@ -50,6 +55,12 @@ jobs:
           npm ci
           npm install -g lighthouse
         working-directory: next-app
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Run local server
         run: |
@@ -129,13 +140,18 @@ jobs:
         run: npm ci
         working-directory: next-app
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
+
       - name: Lint (Next.js)
         run: npm run lint
         working-directory: next-app
 
       - name: Type check (Next.js)
         run: npm run type-check
-        working-directory: next-app
 
       - name: Show test results summary
         run: |

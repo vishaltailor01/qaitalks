@@ -1,34 +1,15 @@
-import Link from 'next/link'
-import { formatDate } from '@/lib/utils'
+export const dynamic = "force-dynamic"
 
-interface BlogPost {
-  id: string
-  slug: string
-  title: string
-  description: string
-  publishedAt: string
-  author?: {
-    name?: string
-    image?: string
-  }
-}
+import Link from "next/link"
+import { prisma } from "@/lib/db"
+import { formatDate } from "@/lib/utils"
 
-async function getBlogPosts(): Promise<BlogPost[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/blog`, {
-      cache: 'no-store'
-    })
-    
-    if (!res.ok) {
-      throw new Error('Failed to fetch blog posts')
-    }
-    
-    return res.json()
-  } catch (error) {
-    console.error('Error fetching blog posts:', error)
-    return []
-  }
+async function getBlogPosts() {
+  return prisma.blogPost.findMany({
+    where: { published: true },
+    include: { author: true },
+    orderBy: { publishedAt: "desc" },
+  })
 }
 
 export default async function BlogPage() {
@@ -61,7 +42,7 @@ export default async function BlogPage() {
                 <p className="text-sm text-slate-500 mt-2">Check back soon for technical deep dives!</p>
               </div>
             ) : (
-              posts.map((post: BlogPost, index: number) => (
+              posts.map((post, index) => (
                 <article
                   key={post.id}
                   className="bg-white rounded-lg border-2 border-deep-blueprint p-8 shadow-[4px_4px_0_rgba(0,27,68,0.1)] hover:shadow-[8px_8px_0_rgba(0,27,68,0.15)] hover:translate-y-[-4px] transition-all duration-300 relative group"
@@ -82,7 +63,7 @@ export default async function BlogPage() {
                       {/* Featured Post */}
                     </div>
                     <span className="text-sm font-mono text-purple-accent font-semibold">
-                      {formatDate(new Date(post.publishedAt))}
+                      {formatDate(post.publishedAt ?? post.createdAt)}
                     </span>
                     <h3 className="text-2xl font-bold text-deep-blueprint mt-3 mb-3 group-hover:text-logic-cyan transition-colors">
                       {post.title}

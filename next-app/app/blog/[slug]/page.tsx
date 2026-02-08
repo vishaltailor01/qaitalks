@@ -1,33 +1,21 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { notFound } from 'next/navigation'
-import { formatDate } from '@/lib/utils'
+export const dynamic = "force-dynamic"
 
-async function getBlogPost(slug: string) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/blog/${slug}`, {
-      cache: 'no-store'
-    })
-    
-    if (!res.ok) {
-      return null
-    }
-    
-    return res.json()
-  } catch (error) {
-    console.error('Error fetching blog post:', error)
-    return null
-  }
-}
+import Link from "next/link"
+import Image from "next/image"
+import { notFound } from "next/navigation"
+import { prisma } from "@/lib/db"
+import { formatDate } from "@/lib/utils"
 
 export default async function BlogPostPage({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
-  const { slug } = params
-  const post = await getBlogPost(slug)
+  const { slug } = await params
+  const post = await prisma.blogPost.findUnique({
+    where: { slug },
+    include: { author: true },
+  })
 
   if (!post) {
     notFound()
@@ -46,7 +34,7 @@ export default async function BlogPostPage({
             
             <header className="mb-12">
               <div className="font-mono text-sm text-purple-accent font-semibold mb-4">
-                {formatDate(post.publishedAt)} / {slug.toUpperCase().replace(/-/g, ' ')} / V1.0.0
+                {formatDate(post.publishedAt ?? post.createdAt)} / {slug.toUpperCase().replace(/-/g, " ")} / V1.0.0
               </div>
               <h1 className="text-5xl md:text-6xl font-black text-deep-blueprint leading-tight mb-6">
                 {post.title}
