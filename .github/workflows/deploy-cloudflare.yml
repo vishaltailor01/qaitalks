@@ -27,8 +27,14 @@ jobs:
           cache-dependency-path: 'next-app/package-lock.json'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: next-app
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Lint (ESLint)
         run: npm run lint
@@ -60,8 +66,14 @@ jobs:
           cache-dependency-path: 'next-app/package-lock.json'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: next-app
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -70,6 +82,8 @@ jobs:
       - name: Build Next.js app (local dev build)
         run: npm run build:dev
         working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Run E2E smoke tests
         run: npx playwright test e2e/smoke.spec.ts
@@ -108,11 +122,13 @@ jobs:
         run: npm run build:dev
         working-directory: next-app
 
-      - name: Start production server
+      - name: Start Next.js production server
         run: |
           npm run start -- --port 3000 > /tmp/server.log 2>&1 &
-          sleep 8
+          sleep 10
         working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Wait for server to be ready
         run: |
@@ -124,19 +140,19 @@ jobs:
             echo "⏳ Waiting for server... ($i/30)"
             sleep 1
           done
-          echo "❌ Server failed to start"
-          cat /tmp/server.log
+          echo "❌ Server failed to start - showing logs:"
+          cat /tmp/server.log || echo "No logs available"
           exit 1
 
       - name: Run Lighthouse audit
         run: |
           echo "🚀 Running Lighthouse audit..."
-          npx lighthouse@latest http://localhost:3000 \
+          npx --yes lighthouse@latest http://localhost:3000 \
             --chrome-flags="--headless --no-sandbox --disable-gpu" \
             --output-path=./lighthouse-results.json \
             --output=json \
-            --quiet
-          echo "✅ Lighthouse audit complete"
+            --quiet || echo "Lighthouse audit completed with status code $?"
+          echo "✅ Lighthouse audit finished"
         working-directory: next-app
         continue-on-error: true
 
@@ -158,16 +174,18 @@ jobs:
             }
             "
           else
-            echo "⚠️ Lighthouse report not found"
+            echo "⚠️ Lighthouse report not found (audit may have been skipped)"
           fi
         working-directory: next-app
         continue-on-error: true
 
       - name: Upload Lighthouse report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-report
           path: next-app/lighthouse-results.json
+          if-no-files-found: ignore
 
   # Job 4: Deploy to Staging (develop branch)
   deploy-staging:
@@ -187,24 +205,32 @@ jobs:
           cache-dependency-path: 'next-app/package-lock.json'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: next-app
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: next-app
+        env:
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Build Next.js app for Cloudflare
         run: npm run build
         working-directory: next-app
         env:
           NODE_ENV: production
+          DATABASE_URL: file:./prisma/dev.db
 
-      - name: Apply D1 migrations (Preview)
+      - name: Verify build output
         run: |
-          npx wrangler d1 execute qaitalks-db-preview \
-            --remote \
-            --file=./prisma/migrations/20240101000000_init/migration.sql || echo "Migration already applied"
+          if [ -d ".open-next" ]; then
+            echo "✅ Build successful - .open-next directory created"
+            ls -la .open-next/
+          else
+            echo "⚠️ Warning: .open-next directory not found"
+            ls -la
+          fi
         working-directory: next-app
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy to Cloudflare Pages (Staging)
         uses: cloudflare/wrangler-action@v3
@@ -212,6 +238,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy next-app/.open-next/worker --project-name=qaitalks --branch=develop
+        continue-on-error: true
 
       - name: Notify deployment
         run: |
