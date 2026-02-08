@@ -18,8 +18,9 @@ The "Blueprint" aesthetic combines a rigid, technical foundation with a "Human L
 | **Purple Accent** | `#6366F1` | Metadata, post headers, system status |
 
 ### Typography
-- **Primary Font:** Inter (derived from Stitch metadata)
-- **Code/Technical:** Monospace for code snippets (e.g., `const blueprint = ...`)
+- **Primary Font:** Inter (main body text and headings)
+- **Code/Technical:** JetBrains Mono (code snippets and technical content)
+- **Accent Font:** Indie Flower (hand-drawn annotations and labels)
 
 ### Visual Style
 - **The Human Layer:** Use "Logic Cyan" (#00D4FF) for hand-drawn style annotations over the rigid grid structure.

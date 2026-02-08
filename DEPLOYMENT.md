@@ -3,9 +3,12 @@
 ## Current Deployment Status
 - **Platform:** Cloudflare Pages
 - **Project Name:** qaitalks
-- **Production URL:** https://main.qaitalks.pages.dev
-- **Custom Domain:** https://qaitalks.com (to be configured)
-- **Last Deployed:** February 6, 2026
+- **Staging URL:** https://develop.qaitalks.pages.dev (Active)
+- **Production URL:** https://main.qaitalks.pages.dev (Disabled - awaiting production readiness)
+- **Custom Domain:** https://qaitalks.com (to be configured after production launch)
+- **Last Updated:** February 8, 2026
+
+**Note:** Production deployment is currently disabled in CI/CD. Only staging deployments to the `develop` branch are active. Production deployment will be enabled when the project is production-ready.
 
 ---
 
@@ -56,7 +59,31 @@ wrangler pages deploy site/public --project-name=qaitalks --branch=develop
 ### GitHub Actions Workflow
 - File: `.github/workflows/deploy-cloudflare.yml`
 - Triggers: Push to `main` or `develop`, Pull requests
-- Action: Deploys to Cloudflare Pages automatically
+- **Current State:** Only staging (develop branch) deployments are active
+- **Production:** Disabled until project is production-ready
+
+### Enabling Production Deployment
+
+When the project is ready for production:
+
+1. **Open the workflow file:**
+   ```bash
+   .github/workflows/deploy-cloudflare.yml
+   ```
+
+2. **Uncomment the `deploy-production` job:**
+   - Find the section starting with `# Job 5: Deploy to Production`
+   - Remove the `#` comment markers from all lines in that job
+   - The job should start with `deploy-production:` (no `#`)
+
+3. **Commit and push:**
+   ```bash
+   git add .github/workflows/deploy-cloudflare.yml
+   git commit -m "feat: enable production deployment"
+   git push origin main
+   ```
+
+4. **Production will now deploy automatically** when you push to the `main` branch.
 
 ---
 
