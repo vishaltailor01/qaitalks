@@ -1,9 +1,12 @@
-# Cloudflare Pages Configuration
+# Cloudflare Pages Configuration for Next.js
+# NOTE: Next.js is now the primary framework (in next-app/)
+# Recommended deployment: Use Vercel instead for better Next.js support
+# If deploying to Cloudflare Pages, use the @cloudflare/next-on-pages adapter
 name = "qaitalks"
 compatibility_date = "2026-02-06"
 
-# Pages project settings
-pages_build_output_dir = "site/public"
+# For static site (deprecated): pages_build_output_dir = "site/public"
+# For Next.js via adapter: build from next-app/ with @cloudflare/next-on-pages
 
 # Environment variables (add secrets via Cloudflare dashboard)
 # Use: wrangler pages secret put SECRET_NAME

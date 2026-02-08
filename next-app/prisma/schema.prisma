@@ -23,7 +23,6 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
-  enrollments   Enrollment[]
   blogPosts     BlogPost[]
 }
 
@@ -60,55 +59,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-// Courses & Learning
-model Course {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  description String
-  image       String?
-  level       String   @default("beginner")  // beginner, intermediate, advanced
-  duration    Int      @default(0)           // minutes
-  modules     Int      @default(0)           // number of modules
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  enrollments Enrollment[]
-  lessons     Lesson[]
-}
-
-model Lesson {
-  id          String   @id @default(cuid())
-  courseId    String
-  title       String
-  slug        String
-  content     String   // HTML content
-  videoUrl    String?
-  orderIndex  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([courseId, slug])
-}
-
-model Enrollment {
-  id          String   @id @default(cuid())
-  userId      String
-  courseId    String
-  progress    Int      @default(0)  // 0-100%
-  completed   Boolean  @default(false)
-  startedAt   DateTime @default(now())
-  completedAt DateTime?
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId])
 }
 
 // Blog
