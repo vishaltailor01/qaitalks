@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx --yes @opennextjs/cloudflare@latest build",
+    "build:dev": "next build",
     "start": "next start",
+    "preview": "wrangler pages dev .open-next/worker",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "type-check": "tsc --noEmit",
@@ -23,9 +25,8 @@
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
-    "@prisma/adapter-better-sqlite3": "^7.3.0",
+    "@prisma/adapter-d1": "^7.3.0",
     "@prisma/client": "^7.3.0",
-    "better-sqlite3": "^12.6.2",
     "isomorphic-dompurify": "^3.0.0-rc.2",
     "next": "16.1.6",
     "next-auth": "^4.24.13",

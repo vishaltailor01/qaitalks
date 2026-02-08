@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
 
 import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"

@@ -2,8 +2,22 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  turbopack: {
-    root: process.cwd(),
+  
+  // Disable Turbopack for production builds (Cloudflare adapter requires webpack)
+  ...(process.env.NODE_ENV === 'production' ? {} : {
+    turbopack: {
+      root: process.cwd(),
+    },
+  }),
+  
+  // Cloudflare requires unoptimized images (use Cloudflare Images separately if needed)
+  images: {
+    unoptimized: true,
+  },
+  
+  // External packages for Server Components
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client', '@prisma/adapter-d1'],
   },
 };
 

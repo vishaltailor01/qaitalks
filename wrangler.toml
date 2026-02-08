@@ -1,18 +1,26 @@
-# Cloudflare Pages Configuration for Next.js
-# NOTE: Next.js is now the primary framework (in next-app/)
-# Recommended deployment: Use Vercel instead for better Next.js support
-# If deploying to Cloudflare Pages, use the @cloudflare/next-on-pages adapter
+# Cloudflare Pages Configuration for Next.js with D1 Database
 name = "qaitalks"
 compatibility_date = "2026-02-06"
+pages_build_output_dir = ".open-next/worker"
 
-# For static site (deprecated): pages_build_output_dir = "site/public"
-# For Next.js via adapter: build from next-app/ with @cloudflare/next-on-pages
+# Required compatibility flags for Next.js
+compatibility_flags = ["nodejs_compat", "streams_enable_constructors"]
+
+# D1 Database - Production
+[[d1_databases]]
+binding = "DB"
+database_name = "qaitalks-db"
+database_id = "d1218a37-db81-44a3-9755-58a872f9019e"
+
+# D1 Database - Preview Environment
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "qaitalks-db-preview"
+database_id = "d6a74ead-6fc2-4cdd-aaad-b01c0297f7cd"
 
 # Environment variables (add secrets via Cloudflare dashboard)
-# Use: wrangler pages secret put SECRET_NAME
-
-[env.production]
-# Production environment configuration
-
-[env.staging]
-# Staging environment configuration
+# Required secrets:
+# - NEXTAUTH_SECRET (wrangler pages secret put NEXTAUTH_SECRET)
+# - NEXTAUTH_URL (wrangler pages secret put NEXTAUTH_URL)
+# - GITHUB_ID, GITHUB_SECRET (OAuth)
+# - GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (OAuth)
