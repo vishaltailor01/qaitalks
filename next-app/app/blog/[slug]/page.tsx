@@ -5,6 +5,7 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
+import DOMPurify from "isomorphic-dompurify"
 
 export default async function BlogPostPage({
   params,
@@ -52,8 +53,7 @@ export default async function BlogPostPage({
               </p>
             </header>
 
-            {/* Article Content */}
-            {/* TODO: For production, replace dangerouslySetInnerHTML with a markdown renderer (e.g., react-markdown) or sanitize HTML with DOMPurify */}
+            {/* Article Content - HTML sanitized with DOMPurify for XSS protection */}
             <div
               id="content"
               className="prose prose-lg prose-slate max-w-none
@@ -68,7 +68,7 @@ export default async function BlogPostPage({
                 prose-blockquote:border-l-4 prose-blockquote:border-logic-cyan prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-slate-600
                 prose-strong:text-deep-blueprint prose-strong:font-bold
                 prose-img:rounded-lg prose-img:shadow-lg"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
 
             {/* Author Info */}
