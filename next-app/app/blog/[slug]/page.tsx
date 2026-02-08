@@ -24,9 +24,9 @@ async function getBlogPost(slug: string) {
 export default async function BlogPostPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: { slug: string }
 }) {
-  const { slug } = await params
+  const { slug } = params
   const post = await getBlogPost(slug)
 
   if (!post) {
@@ -57,7 +57,8 @@ export default async function BlogPostPage({
             </header>
 
             {/* Article Content */}
-            <div 
+            <div
+              id="content"
               className="prose prose-lg prose-slate max-w-none
                 prose-headings:font-bold prose-headings:text-deep-blueprint prose-headings:border-b prose-headings:border-deep-blueprint/10 prose-headings:pb-3 prose-headings:mt-12 prose-headings:mb-6
                 prose-p:text-slate-700 prose-p:leading-relaxed prose-p:mb-6
@@ -102,7 +103,7 @@ export default async function BlogPostPage({
             <div className="mt-12">
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 font-['JetBrains_Mono'] font-semibold text-sm text-navy-900 hover:text-teal-600 transition-colors"
+                className="inline-flex items-center gap-2 font-['JetBrains_Mono'] font-semibold text-sm text-deep-blueprint hover:text-logic-cyan transition-colors"
               >
                 <span>←</span> Back to Engineering Log
               </Link>
@@ -112,14 +113,14 @@ export default async function BlogPostPage({
           {/* Sidebar - Table of Contents */}
           <aside className="hidden lg:block">
             <div className="sticky top-32">
-              <div className="bg-white rounded border border-navy-900/10 p-6 shadow-sm">
-                <h4 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-teal-600 font-bold mb-4">
+              <div className="bg-white rounded border border-deep-blueprint/10 p-6 shadow-sm">
+                <h4 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-logic-cyan font-bold mb-4">
                   On this page
                 </h4>
                 <nav className="space-y-2">
                   <a
                     href="#content"
-                    className="block text-sm text-slate-600 hover:text-navy-900 hover:pl-2 transition-all duration-200"
+                    className="block text-sm text-slate-600 hover:text-deep-blueprint hover:pl-2 transition-all duration-200"
                   >
                     Article Content
                   </a>

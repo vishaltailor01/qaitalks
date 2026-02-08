@@ -1,8 +1,17 @@
+const highlightClasses = {
+  'logic-cyan': 'bg-logic-cyan',
+  'warning-amber': 'bg-warning-amber',
+  'growth-green': 'bg-growth-green',
+  'purple-accent': 'bg-purple-accent',
+} as const
+
+type HighlightKey = keyof typeof highlightClasses
+
 interface PillarCardProps {
   title: string
   description: string
   icon: string
-  highlight?: string
+  highlight?: HighlightKey
 }
 
 export default function PillarCard({
@@ -20,7 +29,7 @@ export default function PillarCard({
       <p className="text-text-slate leading-relaxed">
         {description}
       </p>
-      <div className={`mt-6 h-1 w-12 bg-${highlight} rounded`}></div>
+      <div className={`mt-6 h-1 w-12 ${highlightClasses[highlight]} rounded`}></div>
     </div>
   )
 }

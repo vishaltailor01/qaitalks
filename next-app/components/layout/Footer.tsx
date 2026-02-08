@@ -71,7 +71,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-bold text-warning-amber-500 mb-4">Contact</h4>
+            <h4 className="font-bold text-warning-amber mb-4">Contact</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="mailto:hello@qaitalks.com" className="text-slate-300 hover:text-logic-cyan-bright transition">

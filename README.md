@@ -151,7 +151,7 @@ For comprehensive Copilot instructions, see [.agents/.copilot-instructions.md](.
 
 **Backend**
 - Next.js API Routes
-- NextAuth.js v5 (OAuth + email/password)
+- NextAuth.js v4 (OAuth + email/password)
 - REST API architecture
 
 **Database**
