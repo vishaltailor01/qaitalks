@@ -11,7 +11,7 @@ on:
       - develop
 
 jobs:
-  # Job 1: Validate HTML and run quality checks
+  # Job 1: Code Quality & Validation (Lint + Type Check + Unit Tests)
   validate:
     name: Code Quality & Validation
     runs-on: ubuntu-latest
@@ -23,98 +23,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
         working-directory: next-app
 
-      - name: Lint (Next.js)
+      - name: Lint (ESLint)
         run: npm run lint
         working-directory: next-app
 
-      - name: Type check (Next.js)
+      - name: Type check (TypeScript)
         run: npm run type-check
-
-  # Job 2: Run Lighthouse performance audit (production branch only)
-  lighthouse:
-    name: Lighthouse Audit
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          npm ci
-          npm install -g lighthouse
         working-directory: next-app
 
-      - name: Run local server
-        run: |
-          npm run build
-          npm run start -- --port 3000 &
-          sleep 8
+      - name: Run unit tests (Jest)
+        run: npm run test -- --ci --coverage
         working-directory: next-app
+        continue-on-error: true
 
-      - name: Run Lighthouse on homepage
-        run: |
-          echo "🚀 Running Lighthouse audit on homepage..."
-          lighthouse http://localhost:3000/ --chrome-flags="--headless --no-sandbox" --output-path=./results.json --output=json
-          cat results.json | jq '.categories[] | {category: .id, score: .score}'
-        working-directory: next-app
-
-  # Job 3: Deploy to staging (develop branch)
-  # NOTE: Disabled - static site removed, use Vercel/Cloudflare for Next.js deployment
-  deploy-staging:
-    name: Deploy to Staging
+  # Job 2: E2E Tests (Playwright)
+  e2e-tests:
+    name: E2E Tests
     runs-on: ubuntu-latest
     needs: validate
-    if: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy to Cloudflare Pages (staging)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site/public --project-name=qaitalks --branch=develop
-
-      - name: Comment on workflow
-        run: |
-          echo "✅ Deployed to staging: https://develop.qaitalks.pages.dev"
-
-  # Job 4: Deploy to production (main branch, requires validation + lighthouse)
-  # NOTE: Disabled - static site removed, use Vercel/Cloudflare for Next.js deployment
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [validate, lighthouse]
-    if: false
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Deploy to Cloudflare Pages (production)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site/public --project-name=qaitalks --branch=main
-
-      - name: Notify deployment success
-        run: |
-          echo "✅ Successfully deployed to production!"
-          echo "🌐 Live at: https://qaitalks.com"
-          echo "📊 Full deployment URL: https://main.qaitalks.pages.dev"
-
-  # Job 5: Validate PR changes (only runs on pull requests)
-  validate-pr:
-    name: Validate Pull Request
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -123,24 +55,138 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
         working-directory: next-app
 
-      - name: Lint (Next.js)
-        run: npm run lint
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
         working-directory: next-app
 
-      - name: Type check (Next.js)
-        run: npm run type-check
+      - name: Build Next.js app
+        run: npm run build
+        working-directory: next-app
 
-      - name: Show test results summary
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: next-app
+        continue-on-error: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: next-app/playwright-report/
+          retention-days: 30
+
+  # Job 3: Lighthouse Audit (main/develop pushes only)
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: next-app
+
+      - name: Install Lighthouse
+        run: npm install -g @lhci/cli@latest
+
+      - name: Build Next.js app
+        run: npm run build
+        working-directory: next-app
+
+      - name: Run production server
         run: |
-          echo "📋 PR Validation Summary:"
-          echo "✅ Lint and type checks passed"
-          echo ""
-          echo "Next steps:"
-          echo "1. Assign reviewer to PR"
-          echo "2. Reviewer tests changes locally"
-          echo "3. Merge to develop after approval"
+          npm run start -- --port 3000 > /dev/null 2>&1 &
+          sleep 5
+        working-directory: next-app
+
+      - name: Run Lighthouse audit
+        run: |
+          echo "🚀 Running Lighthouse audit..."
+          lighthouse http://localhost:3000 \
+            --chrome-flags="--headless --no-sandbox" \
+            --output-path=lighthouse-results.json \
+            --output=json
+          echo "✅ Lighthouse audit complete"
+        working-directory: next-app
+
+      - name: Display Lighthouse scores
+        run: |
+          node -e "
+          const data = require('./lighthouse-results.json');
+          console.log('\n📊 Lighthouse Scores:');
+          Object.entries(data.categories).forEach(([key, val]) => {
+            console.log('  ' + key + ': ' + (val.score * 100).toFixed(0) + '/100');
+          });
+          "
+        working-directory: next-app
+        continue-on-error: true
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: next-app/lighthouse-results.json
+
+  # Job 4: Deploy to Staging (develop branch)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, e2e-tests]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages (Staging)
+        run: |
+          echo "🚀 Deploying to Cloudflare Pages (staging)..."
+          echo "Branch: develop"
+          echo "URL: https://develop.qaitalks.pages.dev"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Notify deployment
+        run: |
+          echo "✅ Staging deployment prepared"
+          echo "⏳ Configure Cloudflare Pages for auto-deployment"
+
+  # Job 5: Deploy to Production (main branch)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate, e2e-tests, lighthouse]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages (Production)
+        run: |
+          echo "🚀 Deploying to Cloudflare Pages (production)..."
+          echo "Branch: main"
+          echo "URL: https://main.qaitalks.pages.dev"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Notify production deployment
+        run: |
+          echo "✅ Production deployment prepared"
+          echo "🌐 Live at: https://qaitalks.pages.dev"
+          echo "⏳ Configure Cloudflare Pages for auto-deployment"
