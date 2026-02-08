@@ -23,18 +23,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* Animated Grid Background */}
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0, 27, 68, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 27, 68, 0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: '32px 32px',
-            animation: 'gridMove 20s linear infinite',
-            zIndex: -1,
-          }}
-        ></div>
+        <div className="grid-background"></div>
 
         <Providers>
           <Navbar />

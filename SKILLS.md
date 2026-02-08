@@ -126,6 +126,22 @@ Complete guide to comprehensive testing automation and quality assurance.
 
 ---
 
+### [ARCHITECTURE_CLEANUP.md](ARCHITECTURE_CLEANUP.md) — Project Architecture & Cleanup Log
+Complete documentation of project cleanup, fixes, and architecture verification.
+
+**Covers:**
+- Issues identified and fixed
+- CSS styling refactoring
+- .gitignore and .env.example setup
+- Project structure validation
+- Build and test verification
+- Pre-deployment checklist
+- Architecture status and metrics
+
+**Use when:** Understanding what was cleaned up, verifying project quality, reviewing fixes
+
+---
+
 ## 🎯 Current Project State
 
 | Component | Status | Notes |
@@ -136,6 +152,7 @@ Complete guide to comprehensive testing automation and quality assurance.
 | **Testing (E2E)** | ✅ Complete | Playwright: 6 test spec files |
 | **Testing (Unit)** | ✅ Complete | Jest: 10+ test cases with React Testing Library |
 | **Documentation** | ✅ Complete | 12 focused domain files, all reorganized |
+| **Architecture** | ✅ Clean | Cleaned and debugged (see ARCHITECTURE_CLEANUP.md) |
 | **Deployment** | ✅ Ready | Cloudflare Pages primary, ready for production |
 | **CI/CD** | 🔄 In Progress | GitHub Actions setup for Jest + Playwright |
 | **Monitoring** | 🔄 Planned | Sentry + Cloudflare Analytics setup coming |
@@ -213,14 +230,19 @@ QAi Talks Project
 │   └── TESTING.md — Playwright E2E tests
 │
 ├── 🛠️ Supporting Documentation
+│   ├── ARCHITECTURE_CLEANUP.md — Architecture fixes & cleanup log
 │   ├── DESIGN.md — Visual design system
 │   ├── DEBUG_REPORT.md — Known issues
+│   ├── CLEAN_PROJECT_SUMMARY.md — Project status report
+│   ├── PROJECT_STRUCTURE.md — Directory organization
 │   ├── DEPLOYMENT.md — How to deploy
 │   ├── BRANCHING.md — Git workflow
 │   ├── GITHUB_SETUP.md — Repository config
 │   └── FULLSTACK_PLAN.md — Project overview
 │
 └── ⚙️ Configuration Files
+    ├── .env.example — Environment variables template
+    ├── .gitignore — Git ignore patterns
     ├── next.config.ts — Next.js settings
     ├── package.json — Dependencies & scripts
     ├── tsconfig.json — TypeScript config

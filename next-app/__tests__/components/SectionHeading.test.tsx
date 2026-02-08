@@ -1,23 +1,23 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { SectionHeading } from '@/components'
 
 describe('components/SectionHeading', () => {
   it('should render title', () => {
-    render(<SectionHeading title="Test Title" />)
-    const heading = screen.getByRole('heading', { level: 2 })
+    const { getByRole } = render(<SectionHeading title="Test Title" />)
+    const heading = getByRole('heading', { level: 2 })
     expect(heading).toHaveTextContent('Test Title')
   })
 
   it('should render subtitle when provided', () => {
-    render(<SectionHeading title="Test Title" subtitle="Test Subtitle" />)
-    expect(screen.getByText('Test Subtitle')).toBeInTheDocument()
+    const { getByText } = render(<SectionHeading title="Test Title" subtitle="Test Subtitle" />)
+    expect(getByText('Test Subtitle')).toBeInTheDocument()
   })
 
   it('should not render subtitle when not provided', () => {
-    render(<SectionHeading title="Test Title" />)
+    const { queryByText } = render(<SectionHeading title="Test Title" />)
     // Subtitle should not be rendered if not provided
-    const paragraphs = screen.queryByText(/Test Subtitle/)
+    const paragraphs = queryByText(/Test Subtitle/)
     expect(paragraphs).not.toBeInTheDocument()
   })
 

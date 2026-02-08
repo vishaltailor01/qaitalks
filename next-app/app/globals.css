@@ -60,6 +60,18 @@ code, pre {
 }
 
 /* Utility Classes */
+.grid-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(0, 27, 68, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 27, 68, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: gridMove 20s linear infinite;
+  z-index: -1;
+}
+
 .section-container {
   max-width: 1100px;
   margin: 0 auto;

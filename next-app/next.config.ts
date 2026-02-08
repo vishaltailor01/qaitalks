@@ -15,10 +15,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   
-  // External packages for Server Components
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', '@prisma/adapter-d1'],
-  },
-};
+  // External packages for Server Components (moved from experimental in Next.js 16)
+  serverExternalPackages: ['@prisma/client', '@prisma/adapter-d1'],};
 
 export default nextConfig;

@@ -1,1 +1,87 @@
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Next.js build artifacts
+.next/
+.cache/
+out/
+dist/
+build/
+
+# TypeScript cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# SWC compiler
+.swc/
+
+# Prisma
+.env
+.env.local
+.env.*.local
+prisma/.env
+
+# Database files (local dev only)
+*.db
+*.sqlite
+*.sqlite3
+dev.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.iml
+.DS_Store
+Thumbs.db
+
+# Wrangler
+.wrangler/
+wrangler-log.* 
+
+# Build outputs
+dist/
+build/
+.open-next/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Lock files (optional - uncomment if using yarn/pnpm)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Vercel analytics
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+.cache/
+
+# Results from test runs  
+results.json

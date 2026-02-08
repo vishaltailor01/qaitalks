@@ -31,5 +31,21 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "e2e/**",
+    "jest.config.ts",
+    "jest.setup.ts",
+    "playwright.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.mjs",
+    "coverage/**",
+    "test-results/**",
+    "playwright-report/**"
+  ]
 }
