@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
 export default async function Login() {
   // For now, allow all users to access login page
