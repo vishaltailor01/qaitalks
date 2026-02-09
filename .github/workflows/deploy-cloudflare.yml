@@ -83,6 +83,7 @@ jobs:
         run: npm run build:dev
         working-directory: next-app
         env:
+          CI: true
           DATABASE_URL: file:./prisma/dev.db
 
       - name: Run E2E smoke tests
@@ -121,6 +122,9 @@ jobs:
       - name: Build Next.js app (local dev build)
         run: npm run build:dev
         working-directory: next-app
+        env:
+          CI: true
+          DATABASE_URL: file:./prisma/dev.db
 
       - name: Start Next.js production server
         run: |
@@ -214,12 +218,20 @@ jobs:
         env:
           DATABASE_URL: file:./prisma/dev.db
 
+      - name: Create dummy SQLite database for build
+        run: |
+          mkdir -p prisma
+          touch prisma/dev.db
+        working-directory: next-app
+
       - name: Build Next.js app for Cloudflare
         run: npm run build
         working-directory: next-app
         env:
+          CI: true
           NODE_ENV: production
           DATABASE_URL: file:./prisma/dev.db
+          SKIP_ENV_VALIDATION: true
 
       - name: Verify build output
         run: |
