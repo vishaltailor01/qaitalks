@@ -1,4 +1,4 @@
-// @ts-ignore - @opennextjs/cloudflare is only available at build time
+// @ts-expect-error - @opennextjs/cloudflare is only available at build time
 const config = {
   default: {},
   middleware: {
