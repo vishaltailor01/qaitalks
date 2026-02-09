@@ -70,7 +70,7 @@ jobs:
         working-directory: next-app
 
       - name: Build Next.js app (local dev build)
-        run: npm run build:dev
+        run: npm run build
         working-directory: next-app
         env:
           CI: true
@@ -175,7 +175,7 @@ jobs:
         working-directory: next-app
 
       - name: Build Next.js app for Cloudflare
-        run: npm run build
+        run: npm run build:cloudflare
         working-directory: next-app
         env:
           CI: true
