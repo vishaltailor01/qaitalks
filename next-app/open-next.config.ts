@@ -1,6 +1,5 @@
-import type { OpenNextConfig } from '@opennextjs/cloudflare'
-
-const config: OpenNextConfig = {
+// @ts-ignore - @opennextjs/cloudflare is only available at build time
+const config = {
   default: {},
   middleware: {
     external: true,
