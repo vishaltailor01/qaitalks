@@ -1,4 +1,4 @@
-// @ts-expect-error - @opennextjs/cloudflare is only available at build time
+// OpenNext configuration for Cloudflare Pages
 const config = {
   default: {},
   middleware: {
