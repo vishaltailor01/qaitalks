@@ -199,7 +199,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy next-app/.open-next/worker --project-name=qaitalks --branch=develop
+          command: pages deploy next-app/.open-next --project-name=qaitalks --branch=develop
         continue-on-error: true
 
       - name: Notify deployment
