@@ -12,27 +12,21 @@ binding = "DB"
 database_name = "qaitalks-db"
 database_id = "d1218a37-db81-44a3-9755-58a872f9019e"
 
-# D1 Database - Staging Environment
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "qaitalks-db-staging"
-database_id = "d6a74ead-6fc2-4cdd-aaad-b01c0297f7cd"
-
-# D1 Database - Preview Environment
+# D1 Database - Preview/Staging Environment
 [[env.preview.d1_databases]]
 binding = "DB"
 database_name = "qaitalks-db-preview"
 database_id = "d6a74ead-6fc2-4cdd-aaad-b01c0297f7cd"
 
 # Environment variables (add secrets via Cloudflare dashboard)
-# Production secrets:
+# Production secrets (main branch):
 # - NEXTAUTH_SECRET (wrangler pages secret put NEXTAUTH_SECRET)
 # - NEXTAUTH_URL (your production domain)
 # - DATABASE_URL (production database)
 #
-# Staging secrets (wrangler pages secret put <NAME> --env staging):
-# - NEXTAUTH_SECRET
-# - NEXTAUTH_URL (staging domain)
+# Preview/Staging secrets (non-production branches):
+# - NEXTAUTH_SECRET (wrangler pages secret put NEXTAUTH_SECRET --env preview)
+# - NEXTAUTH_URL (staging domain - https://staging.<project>.pages.dev)
 # - DATABASE_URL (staging database)
 #
 # OAuth Providers (all environments):
