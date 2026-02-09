@@ -1,7 +1,7 @@
 # Cloudflare Pages Configuration for Next.js with D1 Database
 name = "qaitalks"
 compatibility_date = "2026-02-06"
-pages_build_output_dir = "next-app/.open-next/worker"
+pages_build_output_dir = "next-app/.open-next"
 
 # Required compatibility flags for Next.js
 compatibility_flags = ["nodejs_compat", "streams_enable_constructors"]
