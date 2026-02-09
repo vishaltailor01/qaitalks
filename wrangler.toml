@@ -20,15 +20,7 @@ database_id = "d6a74ead-6fc2-4cdd-aaad-b01c0297f7cd"
 
 # Environment variables (add secrets via Cloudflare dashboard)
 # Production secrets (main branch):
-# - NEXTAUTH_SECRET (wrangler pages secret put NEXTAUTH_SECRET)
-# - NEXTAUTH_URL (your production domain)
 # - DATABASE_URL (production database)
 #
 # Preview/Staging secrets (non-production branches):
-# - NEXTAUTH_SECRET (wrangler pages secret put NEXTAUTH_SECRET --env preview)
-# - NEXTAUTH_URL (staging domain - https://staging.<project>.pages.dev)
 # - DATABASE_URL (staging database)
-#
-# OAuth Providers (all environments):
-# - GITHUB_ID, GITHUB_SECRET
-# - GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET

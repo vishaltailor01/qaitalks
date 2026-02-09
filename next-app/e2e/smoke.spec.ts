@@ -108,7 +108,7 @@ test.describe('Critical User Flows', () => {
   });
 
   test('should have accessible form inputs (if any)', async ({ page }) => {
-    const pages = ['/', '/blog', '/curriculum', '/about', '/login'];
+    const pages = ['/', '/blog', '/curriculum', '/about'];
     
     for (const path of pages) {
       await page.goto(path);
@@ -157,7 +157,6 @@ test.describe('Critical User Flows', () => {
     
     // Filter out expected/harmless errors
     const criticalErrors = errors.filter(e =>
-      !e.includes('NextAuth') &&
       !e.includes('favicon') &&
       !e.includes('undefined') &&
       !e.includes('CORS')

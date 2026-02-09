@@ -213,30 +213,17 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 async function main() {
   console.log('Seeding blog posts...')
 
-  // First, create a default author if one doesn't exist
-  const author = await prisma.user.upsert({
-    where: { email: 'admin@qaitalk.com' },
-    update: {},
-    create: {
-      email: 'admin@qaitalk.com',
-      name: 'QAi Talks Team',
-      role: 'admin',
-    },
-  })
-
-  console.log(`Created/found author: ${author.email}`)
-
   // Create blog posts
   for (const post of blogPosts) {
     const createdPost = await prisma.blogPost.upsert({
       where: { slug: post.slug },
       update: {
         ...post,
-        authorId: author.id,
+        authorName: 'QAi Talks Team',
       },
       create: {
         ...post,
-        authorId: author.id,
+        authorName: 'QAi Talks Team',
       },
     })
 

@@ -107,43 +107,9 @@ export default function CreatePost() {
 
 Prevent unauthorized requests to your API.
 
-#### NextAuth.js Protection
-NextAuth automatically provides CSRF protection via tokens:
+#### CSRF Token Handling
+Implement CSRF protection with tokens in forms:
 ```tsx
-// nextauth.ts
-import CredentialsProvider from 'next-auth/providers/credentials';
-
-export const authOptions = {
-  providers: [
-    CredentialsProvider({
-      credentials: {
-        email: { label: 'Email', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        // Verify credentials
-        const user = await verifyUser(credentials);
-        return user || null;
-      },
-    }),
-  ],
-  // Session uses secure cookies with CSRF tokens
-  session: {
-    strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
-  },
-  callbacks: {
-    jwtCallback(token) {
-      // Add CSRF token to JWT
-      return { ...token, csrfToken: Math.random() };
-    },
-  },
-};
-```
-
-#### Manual CSRF Token Handling
-```tsx
-// If not using NextAuth:
 export default function Form() {
   const [csrfToken, setCsrfToken] = useState('');
 
@@ -158,6 +124,7 @@ export default function Form() {
     </form>
   );
 }
+```
 
 // API route
 export async function POST(request: NextRequest) {
@@ -220,56 +187,32 @@ const config: NextConfig = {
 export default config;
 ```
 
-### 4. Authentication Best Practices
+### 4. Public Access & API Security
 
+This application has public access to all pages and API endpoints. When adding authentication in the future, implement proper session management and authorization checks.
+
+#### API Route Security Best Practices
 ```tsx
-// lib/auth.ts
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-// Always get session server-side
-export async function getSession() {
-  return await getServerSession(authOptions);
-}
-
-// Protect API routes
-export async function requireAuth() {
-  const session = await getSession();
-  if (!session) {
-    throw new Error('Not authenticated');
-  }
-  return session;
-}
-
-// Use in Server Components
-export default async function Dashboard() {
-  const session = await getSession();
-
-  if (!session) {
-    redirect('/login');
-  }
-
-  return <div>Welcome {session.user.name}</div>;
-}
-
-// Use in API routes
-export async function GET(request: NextRequest) {
+// Validate all API inputs
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.email || !body.content) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Missing required fields' },
+        { status: 400 }
       );
     }
 
-    // Authenticated request
-    const data = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-    });
+    // Sanitize inputs before processing
+    const sanitized = {
+      email: body.email.toLowerCase().trim(),
+      content: DOMPurify.sanitize(body.content),
+    };
 
-    return NextResponse.json(data);
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
       { error: 'Internal server error' },

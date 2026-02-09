@@ -12,14 +12,15 @@ export default function Footer() {
             <p className="text-slate-300 text-sm mb-4">
               Master QA automation and SDET architecture with industry experts.
             </p>
+            {/* Social Media Links - Update with actual QAi Talks accounts when available */}
             <div className="flex gap-4">
-              <a href="https://x.com" className="hover:text-logic-cyan-bright transition" title="Twitter">
+              <a href="https://x.com" className="hover:text-logic-cyan-bright transition" title="Twitter" aria-label="Follow us on X/Twitter">
                 𝕏
               </a>
-              <a href="https://github.com" className="hover:text-logic-cyan-bright transition" title="GitHub">
+              <a href="https://github.com/qaitalks" className="hover:text-logic-cyan-bright transition" title="GitHub" aria-label="View our GitHub repositories">
                 GitHub
               </a>
-              <a href="https://linkedin.com" className="hover:text-logic-cyan-bright transition" title="LinkedIn">
+              <a href="https://linkedin.com" className="hover:text-logic-cyan-bright transition" title="LinkedIn" aria-label="Connect on LinkedIn">
                 LinkedIn
               </a>
             </div>
@@ -56,16 +57,6 @@ export default function Footer() {
                   GitHub Repos
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-slate-300 hover:text-logic-cyan-bright transition">
-                  Tools & Utilities
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-300 hover:text-logic-cyan-bright transition">
-                  Documentation
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -78,11 +69,6 @@ export default function Footer() {
                   Email
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-slate-300 hover:text-logic-cyan-bright transition">
-                  Community
-                </a>
-              </li>
             </ul>
           </div>
         </div>
@@ -90,17 +76,6 @@ export default function Footer() {
         {/* Footer Bottom */}
         <div className="border-t border-slate-700 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-400">
           <p>&copy; 2025 QAi Talks. All rights reserved.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
-            <Link href="#" className="hover:text-logic-cyan-bright transition">
-              Privacy
-            </Link>
-            <Link href="#" className="hover:text-logic-cyan-bright transition">
-              Terms
-            </Link>
-            <Link href="#" className="hover:text-logic-cyan-bright transition">
-              Sitemap
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

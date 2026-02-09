@@ -40,9 +40,8 @@ QAi Talks/
 
 ## 🎯 Key Features
 
-- ✅ **Authentication** — OAuth (GitHub, Google) + email/password with NextAuth.js
-- ✅ **Blog System** — Create, edit, publish articles
-- ✅ **Course Curriculum** — Organized learning materials
+- ✅ **Blog System** — Read and explore technical articles
+- ✅ **Course Curriculum** — Comprehensive learning materials
 - ✅ **Responsive Design** — Mobile, tablet, desktop optimized
 - ✅ **Database** — SQLite (dev), PostgreSQL (production)
 - ✅ **Testing** — Playwright E2E + Jest unit tests

@@ -6,7 +6,7 @@ Master index for project documentation. Click below to navigate to domain-specif
 
 **Technology Stack:**
 - **Frontend:** Next.js 16 with React 19, TypeScript, Tailwind CSS
-- **Backend:** Node.js with Prisma ORM, NextAuth.js OAuth
+- **Backend:** Node.js with Prisma ORM
 - **Database:** SQLite (dev), PostgreSQL (production)
 - **Testing:** Playwright E2E testing + Jest unit tests
 - **Hosting:** Cloudflare Pages (primary) or Vercel
@@ -26,7 +26,6 @@ Complete guide for building features in Next.js 16 with React 19.
 - Tailwind CSS styling system and custom design tokens
 - Form handling with zod validation
 - API routes and request/response patterns
-- NextAuth.js OAuth configuration
 - Image optimization and performance tips
 - Development workflow checklist
 
@@ -60,7 +59,6 @@ Comprehensive security best practices for production applications.
 - Content Security Policy (CSP) headers
 - Backend input validation and SQL injection prevention
 - Rate limiting and API security
-- NextAuth.js secure configuration
 - Environment variables and secrets management
 - HTTPS, SSL/TLS, and certificate management
 - Dependency auditing and vulnerability scanning

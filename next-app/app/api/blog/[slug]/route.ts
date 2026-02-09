@@ -13,15 +13,6 @@ export async function GET(
     const prisma = getPrisma()
     const post = await prisma.blogPost.findUnique({
       where: { slug },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-      },
     })
 
     if (!post) {

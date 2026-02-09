@@ -2,11 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSession, signOut } from 'next-auth/react'
 
 export default function Navbar() {
-  const { data: session } = useSession()
-
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,27 +33,6 @@ export default function Navbar() {
             <Link href="/blog" className="text-text-slate hover:text-deep-blueprint transition font-medium">
               Blog
             </Link>
-          </div>
-
-          {/* Auth Section */}
-          <div className="flex items-center gap-4">
-            {session ? (
-              <>
-                <Link href="/dashboard" className="text-text-slate hover:text-deep-blueprint transition font-medium">
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="px-4 py-2 bg-deep-blueprint text-white rounded-lg hover:bg-blue-900 transition font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <Link href="/login" className="px-4 py-2 bg-deep-blueprint text-white rounded-lg hover:bg-blue-900 transition font-medium">
-                Sign In
-              </Link>
-            )}
           </div>
         </div>
       </div>

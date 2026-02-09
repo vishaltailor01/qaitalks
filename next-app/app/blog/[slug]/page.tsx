@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
-import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
@@ -16,15 +15,6 @@ export default async function BlogPostPage({
   const prisma = getPrisma()
   const post = await prisma.blogPost.findUnique({
     where: { slug },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-    },
   })
 
   if (!post) {
@@ -71,31 +61,6 @@ export default async function BlogPostPage({
                 prose-img:rounded-lg prose-img:shadow-lg"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
-
-            {/* Author Info */}
-            {post.author && (
-              <div className="mt-16 pt-8 border-t border-deep-blueprint/10">
-                <div className="flex items-center gap-4">
-                  {post.author.image && (
-                    <Image
-                      src={post.author.image}
-                      alt={post.author.name || 'Author'}
-                      width={64}
-                      height={64}
-                      className="w-16 h-16 rounded-full border-2 border-deep-blueprint"
-                    />
-                  )}
-                  <div>
-                    <div className="font-bold text-deep-blueprint text-lg">
-                      {post.author.name || 'Anonymous'}
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Article Author
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Back to Blog Link */}
             <div className="mt-12">

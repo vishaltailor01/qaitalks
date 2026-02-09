@@ -1,13 +1,6 @@
 import Link from "next/link"
 
 export default async function Dashboard() {
-  // Session check can be implemented via middleware
-  // For now, allow access to dashboard
-  // const session = await getServerSession(authOptions)
-  // if (!session) {
-  //   redirect("/login")
-  // }
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Page Header */}
@@ -20,6 +13,13 @@ export default async function Dashboard() {
 
       {/* Dashboard Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Public Access Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> This dashboard is publicly accessible. The stats shown below are placeholder values for demonstration purposes.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Stats Cards */}
           {[
@@ -68,12 +68,8 @@ export default async function Dashboard() {
             
             <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200">
               <div className="text-4xl mb-4">👤</div>
-              <h3 className="text-xl font-bold text-deep-blueprint mb-2">Profile</h3>
-              <p className="text-slate-600 mb-4">Manage your account settings</p>
-              <div className="text-sm text-slate-500">
-                <p>Email: user@example.com</p>
-                <p className="mt-2 text-xs">Authentication setup coming soon...</p>
-              </div>
+              <h3 className="text-xl font-bold text-deep-blueprint mb-2">Resources</h3>
+              <p className="text-slate-600 mb-4">Access learning materials and guides</p>
             </div>
           </div>
         </div>

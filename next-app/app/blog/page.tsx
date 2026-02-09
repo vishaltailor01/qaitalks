@@ -4,17 +4,12 @@ import Link from "next/link"
 import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
 
-async function getBlogPosts() {
+export default async function BlogPage() {
   const prisma = getPrisma()
-  return prisma.blogPost.findMany({
+  const posts = await prisma.blogPost.findMany({
     where: { published: true },
-    include: { author: true },
     orderBy: { publishedAt: "desc" },
   })
-}
-
-export default async function BlogPage() {
-  const posts = await getBlogPosts()
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -60,9 +55,6 @@ export default async function BlogPage() {
                   )}
                   
                   <div className="mb-6">
-                    <div className="font-mono text-xs text-slate-500 mb-2">
-                      {/* Featured Post */}
-                    </div>
                     <span className="text-sm font-mono text-purple-accent font-semibold">
                       {formatDate(post.publishedAt ?? post.createdAt)}
                     </span>
