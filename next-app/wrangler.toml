@@ -3,6 +3,9 @@ name = "qaitalks"
 compatibility_date = "2026-02-06"
 pages_build_output_dir = ".open-next/worker"
 
+[build]
+command = "npm run build:cloudflare"
+
 # Required compatibility flags for Next.js
 compatibility_flags = ["nodejs_compat", "streams_enable_constructors"]
 

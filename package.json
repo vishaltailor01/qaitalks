@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build": "npm --prefix next-app run build:cloudflare",
     "postinstall": "npm --prefix next-app run postinstall",
     "type-check": "npm --prefix next-app run type-check"
   },
