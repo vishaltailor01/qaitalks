@@ -268,11 +268,14 @@ export class BlogPage {
 import { test } from '@playwright/test';
 import { BlogPage } from './pages/BlogPage';
 
-test('navigate to blog post', async ({ page }) => {
+test('navigate to blog listing with 11 posts', async ({ page }) => {
   const blogPage = new BlogPage(page);
   await blogPage.goto();
-  await blogPage.clickPostByTitle('Contract Testing');
-  await blogPage.assertPostVisible('Contract Testing');
+  
+  // Verify blog grid displays with all 11 cards
+  const blogCards = page.locator('article');
+  const count = await blogCards.count();
+  expect(count).toBeGreaterThanOrEqual(11);
 });
 ```
 

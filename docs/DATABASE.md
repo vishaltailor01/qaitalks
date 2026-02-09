@@ -316,22 +316,28 @@ async function main() {
     },
   });
 
-  // Create blog posts
+  // Create blog posts (11 total: 3 original + 8 skill-based)
+  // Each post now includes:
+  // - Professional SVG featured image (gradient background)
+  // - 2000-4000 word HTML content
+  // - Category badge and reading time automatically calculated
+  // - Author attribution and publication date
+  // - Table of contents auto-extracted from H2/H3 headings
+  // - Social share buttons (Twitter/X, LinkedIn)
+  
   const posts = [
-    {
-      slug: 'contract-testing',
-      title: 'Contract Testing in QA',
-      content: 'Contract testing is...',
-      published: true,
-      authorId: admin.id,
-    },
+    // Original posts (3)
     {
       slug: 'pom-is-dead',
-      title: 'Is POM Pattern Dead?',
-      content: 'The Page Object Model pattern...',
+      title: 'Why Page Object Model is Dead',
+      description: 'POM is obsolete. Screenplay pattern and component-based testing...',
+      content: '<h2>The Evolution of Test Architecture</h2>...',
+      image: '/blog/pom-is-dead.svg',
       published: true,
+      publishedAt: new Date('2026-10-24'),
       authorId: admin.id,
     },
+    // ... remaining 10 posts follow same structure
   ];
 
   for (const post of posts) {

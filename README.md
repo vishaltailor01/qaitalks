@@ -40,10 +40,15 @@ QAi Talks/
 
 ## 🎯 Key Features
 
-- ✅ **Blog System** — Read and explore technical articles
-- ✅ **Course Curriculum** — Comprehensive learning materials
+- ✅ **Blog System** — 11 technical articles with professional SVG images
+  - 📖 **Reading Time Estimates** — Word count-based reading time on all posts
+  - 🏷️ **Category Badges** — Color-coded categories (Testing, Database, Frontend, Security, SEO, Accessibility, etc.)
+  - 📑 **Table of Contents** — Auto-extracted headings with smooth scroll links on detail pages
+  - 📤 **Social Sharing** — Share buttons for Twitter/X and LinkedIn
+  - 💾 **Complete Content** — 2000-4000 word posts with internal cross-links
+- ✅ **Course Curriculum** — Comprehensive 12-week learning program
 - ✅ **Responsive Design** — Mobile, tablet, desktop optimized
-- ✅ **Database** — SQLite (dev), PostgreSQL (production)
+- ✅ **Database** — SQLite (dev), PostgreSQL (production), 11 blog posts seeded
 - ✅ **Testing** — Playwright E2E + Jest unit tests
 - ✅ **Accessibility** — WCAG 2.1 Level AA compliant
 - ✅ **SEO Optimized** — Meta tags, structured data, fast performance

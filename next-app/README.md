@@ -4,9 +4,15 @@ A modern Next.js platform for QA automation education, featuring comprehensive c
 
 ## 🚀 Features
 
+- **Blog Platform** - 11 technical articles with:
+  - Professional SVG images (unique gradient per post)
+  - Reading time estimates
+  - Category badges with color coding
+  - Table of contents with smooth scrolling
+  - Social share buttons (Twitter/X, LinkedIn)
+  - Complete HTML content (2000-4000 words per post)
 - **Course Management** - Browse and enroll in QA automation courses
-- **Blog Platform** - Technical articles on test automation and engineering
-- **Curriculum** - Detailed 12-week bootcamp curriculum
+- **Curriculum** - Detailed 12-week bootcamp with learning materials
 - **User Authentication** - NextAuth.js with support for multiple providers
 - **Database** - Prisma ORM with SQLite (easily switchable to PostgreSQL)
 - **Modern UI** - Tailwind CSS with custom design system
@@ -81,6 +87,8 @@ next-app/
 │   │   ├── courses/       # Course API endpoints
 │   │   └── enrollments/   # Enrollment endpoints
 │   ├── blog/              # Blog pages
+│   │   ├── page.tsx       # Blog listing with grid, categories, reading time
+│   │   └── [slug]/        # Individual blog post pages (11 posts)
 │   ├── courses/           # Courses pages
 │   ├── curriculum/        # Curriculum page
 │   └── dashboard/         # User dashboard
@@ -91,8 +99,9 @@ next-app/
 │   └── utils.ts          # Helper functions
 ├── prisma/               # Database schema and migrations
 │   ├── schema.prisma     # Database schema
-│   └── seed.ts           # Database seeding script
+│   └── seed.ts           # Database seeding (11 blog posts)
 ├── public/               # Static assets
+│   └── blog/             # SVG images for blog posts (11 files)
 └── types/                # TypeScript type definitions
 ```
 
@@ -132,9 +141,10 @@ Custom design system with Tailwind CSS:
 
 ## 📚 API Routes
 
-### Blog
-- `GET /api/blog` - List all published posts
-- `GET /api/blog/[slug]` - Get specific post
+### Blog (11 Posts)
+- `GET /api/blog` - List all published posts with metadata
+- `GET /api/blog/[slug]` - Get specific post with full content
+- Posts include: title, description, content (HTML), image path, reading time, author, date
 
 ### Courses
 - `GET /api/courses` - List all courses
@@ -142,6 +152,34 @@ Custom design system with Tailwind CSS:
 
 ### Enrollments
 - `POST /api/enrollments` - Enroll in a course
+
+## 📝 Blog Posts (11 Total)
+
+**Original Posts (3):**
+1. Why Page Object Model is Dead (pom-is-dead)
+2. Contract Testing with Pact (contract-testing)
+3. Scaling Playwright to 1000 Nodes (scaling-playwright)
+
+**Skill-Based Posts (8):**
+4. Shift-Left Testing in Enterprise (shift-left-testing-enterprise)
+5. Selenium + Java for E-Commerce (selenium-java-automation-framework-ecommerce)
+6. Next.js 16 Development Mastery (nextjs-16-development-mastery)
+7. Prisma Database Optimization (prisma-database-design-optimization)
+8. Web Security in Production (web-security-production-applications)
+9. Technical SEO for Engineering Blogs (technical-seo-engineering-blog)
+10. Web Accessibility WCAG 2.1 (web-accessibility-wcag-21-compliance)
+11. Playwright E2E Professional Testing (playwright-e2e-testing-professional)
+
+Each post includes:
+- ✅ Custom SVG image with gradient background
+- ✅ 2000-4000 word HTML content
+- ✅ Category badge
+- ✅ Reading time estimate
+- ✅ Author attribution
+- ✅ Publication date
+- ✅ Table of contents (on detail page)
+- ✅ Social share buttons
+- ✅ Internal cross-links
 
 ## 🚢 Deployment
 
