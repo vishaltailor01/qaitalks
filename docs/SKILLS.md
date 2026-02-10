@@ -1,6 +1,41 @@
 # QAi Talks - Project Skills & Documentation
 
-Master index for project documentation. Click below to navigate to domain-specific guides.
+Master index for project documentation. **AI agents should reference this as the primary navigation hub.**
+
+---
+
+## ⚡ AI Fast Context (Start Here for AI)
+
+**For AI agents:** Read these FIRST before diving into comprehensive docs:
+
+### [.agents/context/quick-reference.md](../.agents/context/quick-reference.md) — 200-line AI Fast Context
+**Essential context for 90% of development tasks.** Tech stack, file structure, quick patterns, design tokens, common commands.
+
+**Read this FIRST** — provides enough context to start building without reading 1000+ lines.
+
+### [.agents/context/common-pitfalls.md](../.agents/context/common-pitfalls.md) — Troubleshooting Guide
+Quick fixes for frequent issues: dev server crashes, database errors, build failures, caching issues.
+
+**Use when:** Encountering errors or unexpected behavior.
+
+---
+
+## 🤖 AI Task Skills (For AI Agents)
+
+**Automated workflows for common development tasks.** AI invokes these for specific use cases.
+
+| Skill | Purpose | When AI Uses |
+|-------|---------|--------------|
+| **[page-creation](../.agents/skills/page-creation/SKILL.md)** | Add new pages/routes | "Create /events page" |
+| **[database-changes](../.agents/skills/database-changes/SKILL.md)** | Modify schema & migrations | "Add User model" |
+| **[component-patterns](../.agents/skills/component-patterns/SKILL.md)** | Create React components | "Build Card component" |
+| **[blog-writing](../.agents/skills/blog-writing/SKILL.md)** | Add blog posts with seed data | "Write blog post about X" |
+| **[feature-planning-workflow](../.agents/skills/feature-planning-workflow/SKILL.md)** | Plan new features (9-doc framework) | "Plan authentication feature" |
+| **[cv-review-tool-planning](../.agents/skills/cv-review-tool-planning/SKILL.md)** | CV Review Tool quick reference | Working on CV Review Tool |
+
+**See:** [.agents/skills/README.md](../.agents/skills/README.md) for skill architecture and relationships.
+
+---
 
 ## 📋 Quick Overview
 
@@ -11,7 +46,7 @@ Master index for project documentation. Click below to navigate to domain-specif
 - **Testing:** Playwright E2E testing + Jest unit tests
 - **Hosting:** Cloudflare Pages (primary) or Vercel
 
-**Project Status:** ✅ Core features complete | 🔄 Documentation reorganized into focused guides
+**Project Status:** ✅ Core features complete | ✅ AI-optimized documentation (3-tier system)
 
 ---
 

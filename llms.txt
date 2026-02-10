@@ -1,0 +1,362 @@
+# QaiTAlk Project - Application Guide for LLMs
+
+This file describes the QaiTAlk project structure, resources, and conventions for Large Language Models to understand and navigate the codebase effectively.
+
+Auto-generated: February 9, 2026
+
+## 📋 Project Overview
+
+**QaiTAlk** is a full-stack Next.js application connecting mentors with job seekers. It provides blog content, curriculum resources, and the CV Review & Interview Preparation Tool.
+
+- **Technology Stack:** Next.js, React, TypeScript, Prisma, PostgreSQL, Cloudflare
+- **Repository:** QaiTAlk (workspace: c:\Users\tailo\OneDrive\Desktop\QaiTAlk)
+- **Deployment:** Cloudflare Pages with D1 database
+
+## 🤖 Agent Skills & Customizations
+
+The `.agents/` directory contains specialized workflows for AI-assisted development using the Awesome Copilot framework.
+
+### **Tier 1: Reusable Frameworks**
+
+#### feature-planning-workflow
+- **Path:** `.agents/skills/feature-planning-workflow/`
+- **Purpose:** Generic framework for planning any new feature
+- **Output:** 9-document planning package (PRD, architecture, security, etc.)
+- **Lines:** 1,200+
+- **When to Use:** Planning major features like CV Review Tool
+
+#### [Extends] cv-review-tool-planning
+- **Path:** `.agents/skills/cv-review-tool-planning/`
+- **Purpose:** Feature-specific quick reference wrapping feature-planning-workflow
+- **Use For:** CV Review Tool feature planning
+
+### **Tier 2: Operational Workflows**
+
+#### blog-writing
+- **Path:** `.agents/skills/blog-writing/`
+- **Purpose:** Add blog posts with Prisma seed data and HTML content
+- **Use When:** Adding new blog articles
+- **Lines:** ~400
+
+#### page-creation
+- **Path:** `.agents/skills/page-creation/`
+- **Purpose:** Create new Next.js pages and routes
+- **Use When:** Adding new pages to the application
+- **Lines:** ~350
+
+#### database-changes
+- **Path:** `.agents/skills/database-changes/`
+- **Purpose:** Modify Prisma schema and create migrations
+- **Use When:** Updating database structure
+- **Lines:** ~400
+
+#### component-patterns
+- **Path:** `.agents/skills/component-patterns/`
+- **Purpose:** Create React components following project patterns
+- **Use When:** Building new components
+- **Lines:** ~350
+
+### **Tier 3: Discovery**
+
+#### find-skills
+- **Path:** `.agents/skills/find-skills/`
+- **Purpose:** Discover and install agent skills
+- **Use When:** Looking for functionality that might exist as a skill
+- **Lines:** ~300
+
+## 📝 Prompt Engineering Patterns
+
+Located in `.agents/prompts/`, these patterns guide how to structure requests to Copilot:
+
+- **feature-planning.prompt.md** - Comprehensive feature planning requests
+- **code-generation.prompt.md** - Clean, maintainable code generation
+- **testing-validation.prompt.md** - Test writing and validation
+- **documentation.prompt.md** - Clear documentation creation
+- **refactoring.prompt.md** - Safe refactoring with confidence
+
+**How to Use:** Copy the prompt template from the relevant file into Copilot Chat, customize with your task details, and run.
+
+## 💾 Planning & Design Documents
+
+Located in `.agents/planning/` and `docs/ways-of-work/plan/cv-review-tool/`:
+
+### CV Review Tool Feature Planning
+
+- **prd.md** - Product requirements, user stories, scope
+- **architecture.md** - System design, data models, component hierarchy
+- **security.md** - Security considerations, compliance, data protection
+- **implementation-plan.md** - Phased approach, milestones, effort estimates
+- **testing-strategy.md** - Test cases, coverage requirements, scenarios
+- **deployment-plan.md** - Release steps, monitoring, rollout strategy
+- **database-design.md** - Prisma schema, table relationships
+- **api-design.md** - API endpoints, request/response contracts
+- **cicd-enhancement.md** - CI/CD pipeline, automation, testing
+
+**How to Use:** Review relevant documents before implementation. Use as single source of truth for design decisions.
+
+## 📚 Project Documentation
+
+Located in `docs/` directory:
+
+### Core Guides
+- **DEVELOPMENT.md** - Development workflow, setup, running tasks
+- **DATABASE.md** - Database schema, migrations, data management
+- **PROJECT_STRUCTURE.md** - Folder layout, file organization
+- **TESTING.md** - Testing strategy, test execution
+- **DEPLOYMENT.md** - Deployment process, environments
+- **CI-CD.md** - Continuous integration and deployment
+- **ACCESSIBILITY.md** - Accessibility standards (WCAG 2.1 AA)
+- **SECURITY.md** - Security practices, environment variables
+- **PRODUCTION_READINESS.md** - Production checklist
+
+### Design & Standards
+- **DESIGN.md** - Design system, component library
+- **SEO.md** - SEO strategy and implementation
+- **BRANCHING.md** - Git branching strategy
+
+### Additional
+- **QUICK_REFERENCE.md** - Fast lookup guide
+- **GITHUB_SETUP.md** - GitHub configuration
+- **ORGANIZATION_CHANGELOG.md** - Recent project changes
+
+## 🏗️ Project Structure
+
+```
+QaiTAlk/
+├── .agents/                          # Agent configurations (Awesome Copilot)
+│   ├── README.md                     # Master reference for all skills
+│   ├── skills/                       # Reusable skills & workflows
+│   │   ├── feature-planning-workflow/
+│   │   ├── cv-review-tool-planning/
+│   │   ├── blog-writing/
+│   │   ├── page-creation/
+│   │   ├── database-changes/
+│   │   ├── component-patterns/
+│   │   └── find-skills/
+│   ├── prompts/                      # Prompt engineering patterns
+│   │   ├── README.md
+│   │   ├── feature-planning.prompt.md
+│   │   ├── code-generation.prompt.md
+│   │   ├── testing-validation.prompt.md
+│   │   ├── documentation.prompt.md
+│   │   └── refactoring.prompt.md
+│   ├── planning/                     # Feature planning index
+│   │   └── README.md
+│   └── context/                      # Quick reference context files
+│       ├── quick-reference.md
+│       └── common-pitfalls.md
+│
+├── docs/                             # Project documentation
+│   ├── [14 main guides]
+│   ├── archive/                      # Historical documentation
+│   └── ways-of-work/plan/
+│       └── cv-review-tool/           # CV feature planning docs
+│           ├── prd.md
+│           ├── architecture.md
+│           ├── security.md
+│           └── [6 more docs]
+│
+├── next-app/                         # Next.js application
+│   ├── app/                          # Next.js App Router
+│   │   ├── page.tsx                  # Home page
+│   │   ├── layout.tsx                # Root layout
+│   │   ├── globals.css
+│   │   ├── about/                    # About page
+│   │   ├── blog/                     # Blog pages (dynamic)
+│   │   ├── curriculum/               # Curriculum pages
+│   │   ├── dashboard/                # User dashboard
+│   │   └── api/                      # API routes
+│   ├── components/                   # React components
+│   │   ├── index.ts                  # Component exports
+│   │   ├── layout/                   # Layout components
+│   │   └── sections/                 # Page section components
+│   ├── lib/                          # Utilities
+│   │   ├── db.ts                     # Database connection
+│   │   └── utils.ts                  # Helper functions
+│   ├── prisma/                       # Database
+│   │   ├── schema.prisma             # Data schema
+│   │   ├── seed.ts                   # Seed data
+│   │   └── migrations/               # Database migrations
+│   ├── public/                       # Static files
+│   │   ├── blog/                     # Blog images/assets
+│   │   └── ...
+│   ├── __tests__/                    # Test files
+│   │   ├── components/
+│   │   └── lib/
+│   ├── e2e/                          # End-to-end tests (Playwright)
+│   └── [config files]                # tsconfig.json, jest.config.ts, etc.
+│
+├── README.md                         # Project README
+├── ORGANIZATION_CHANGELOG.md         # Recent changes
+├── package.json                      # Dependencies
+└── llms.txt                          # This file (AI discovery guide)
+```
+
+## 🛠️ Technology Stack
+
+### **Frontend**
+- **Framework:** Next.js 15+ with App Router
+- **Language:** TypeScript (strict mode)
+- **Styling:** TailwindCSS + PostCSS
+- **Components:** React (functional components + hooks)
+- **Date Handling:** date-fns library
+
+### **Backend**
+- **Framework:** Next.js API routes
+- **ORM:** Prisma
+- **Database:** PostgreSQL (via Cloudflare D1)
+- **Authentication:** OAuth2 (MentorFlow integration)
+
+### **DevOps & Tools**
+- **Deployment:** Cloudflare Pages + Wrangler
+- **Testing:** Jest + React Testing Library + Playwright
+- **Linting:** ESLint
+- **Code Formatting:** Prettier (via ESLint)
+- **Git:** GitHub with conventional commits
+
+### **Development Setup**
+- **Node.js:** v18+ (LTS recommended)
+- **Package Manager:** npm
+- **Environment:** TypeScript + strict tsconfig
+
+## 📋 Development Workflows
+
+### **Before Starting Work**
+1. Review `.agents/README.md` for skill overview
+2. Check `.agents/context/quick-reference.md` for essentials
+3. Review relevant planning doc for feature context
+
+### **When Planning a Feature**
+1. Use `feature-planning-workflow` skill
+2. Generate comprehensive planning documents
+3. Update `.agents/planning/README.md` with link
+
+### **When Implementing a Feature**
+1. Reference PRD from planning docs for requirements
+2. Follow architecture design from docs
+3. Use appropriate skill for task (page-creation, blog-writing, etc.)
+4. Reference similar existing code patterns
+5. Follow testing strategy from planning docs
+
+### **When Debugging**
+1. Check `.agents/context/common-pitfalls.md` for known issues
+2. Review relevant planning docs for design context
+3. Reference TESTING.md for test strategies
+4. Consult relevant skill documentation
+
+## 🐛 Common Development Tasks
+
+### Add a New Blog Post
+- **Skill:** `blog-writing`
+- **File:** Modify `prisma/seed.ts` with new post
+- **Data:** Title, date, excerpt, content (HTML), author, tags
+- **Schema:** See Prisma schema for Post model
+
+### Create a New Page
+- **Skill:** `page-creation`
+- **Files:** New folder in `app/[route]/page.tsx`
+- **Components:** Use components from `components/` folder
+- **Styling:** TailwindCSS classes in JSX
+
+### Update Database
+- **Skill:** `database-changes`
+- **Schema:** Edit `prisma/schema.prisma`
+- **Migration:** Run `prisma migrate dev --name [description]`
+- **Seed:** Update `prisma/seed.ts` if needed
+
+### Build a Component
+- **Skill:** `component-patterns`
+- **Location:** `components/sections/` or `components/layout/`
+- **Types:** Define props interface, return React.ReactNode
+- **Testing:** Add tests in `__tests__/components/`
+
+## 🧪 Testing Guide
+
+### Test Structure
+- **Unit Tests:** `__tests__/components/` and `__tests__/lib/`
+- **E2E Tests:** `e2e/` (Playwright)
+- **Framework:** Jest + React Testing Library
+
+### Running Tests
+- **Unit Tests:** `npm run test` (Jest)
+- **E2E Tests:** `npm run e2e` (Playwright)
+- **Coverage:** `npm run coverage`
+
+### Test Coverage Goals
+- **Minimum:** 80% line coverage
+- **Ideal:** 85%+ coverage with good branching
+- **Critical Paths:** 100% coverage required
+
+## 📊 Key Metrics & Monitoring
+
+### Performance
+- **Lighthouse Score:** Target 90+ on all metrics
+- **Core Web Vitals:** FCP, LCP, CLS
+- **Bundle Size:** Monitor with `npm run analyze`
+
+### Analytics
+- **Pageviews:** Track per page (blog, curriculum)
+- **User Engagement:** Time on page, scroll depth
+- **Conversion:** CV submissions, mentor bookings
+
+## 🔒 Security & Compliance
+
+### GDPR Compliance
+- User data encrypted at rest
+- Data retention policy enforced
+- User consent properly tracked
+
+### Accessibility (WCAG 2.1 AA)
+- All pages pass axe accessibility audit
+- Proper heading hierarchy
+- Keyboard navigation support
+- Color contrast ratios met
+
+### Authentication & Authorization
+- OAuth2 via MentorFlow
+- Session management
+- Rate limiting on APIs
+- CSRF protection
+
+## 🚀 Deployment & Rollout
+
+### Deployment Steps
+1. Prep: Complete testing and code review
+2. Build: `npm run build`
+3. Test: Verify builds and test suites pass
+4. Deploy: `wrangler deploy` to Cloudflare
+5. Monitor: Check Cloudflare Analytics and logs
+
+### Rollout Strategy
+- **Feature Flags:** For gradual rollout (future)
+- **Canary:** Test with 10% of users first
+- **Gradual:** Increase to 100% over time
+- **Rollback:** Have clear rollback plan
+
+## 🎯 Current Focus (February 2026)
+
+### In Development
+- **CV Review & Interview Prep Tool** - See cv-review-tool planning docs
+
+### Upcoming
+- Enhanced mentor matching algorithms
+- Curriculum expansion
+- Community features
+
+## 📚 Additional Resources
+
+- **Awesome Copilot Repository:** https://github.com/github/awesome-copilot
+- **llmstxt.org Specification:** https://llmstxt.org/
+- **Next.js Documentation:** https://nextjs.org/docs
+- **Prisma Documentation:** https://www.prisma.io/docs
+- **Cloudflare Pages:** https://developers.cloudflare.com/pages/
+
+## ✅ Last Updated
+
+- **Date:** February 9, 2026
+- **By:** QaiTAlk Development Team
+- **Next Review:** March 9, 2026
+
+---
+
+*This file follows the [llmstxt.org](https://llmstxt.org/) specification for machine-readable project documentation.*
