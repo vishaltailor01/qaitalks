@@ -1,0 +1,244 @@
+---
+description: 'Foundation instructions for GitHub Copilot on QaiTAlk project'
+---
+
+# QaiTAlk Copilot Instructions
+
+QaiTAlk is a full-stack Next.js mentorship platform connecting mentors with job seekers through blog content, curriculum resources, and the CV Review & Interview Preparation Tool.
+
+## Project Overview
+
+- **Framework:** Next.js 15+ with App Router
+- **Language:** TypeScript (strict mode)
+- **Database:** PostgreSQL via Prisma
+- **Styling:** TailwindCSS
+- **Deployment:** Cloudflare Pages + D1
+- **Testing:** Jest + React Testing Library + Playwright
+
+## Core Principles
+
+1. **Type Safety** - Strict TypeScript at all times
+2. **Accessibility** - WCAG 2.1 AA compliance required
+3. **Security** - GDPR compliant, OAuth2 authentication
+4. **Performance** - Lighthouse 90+ on all metrics
+5. **Testing** - 80%+ code coverage minimum
+6. **Documentation** - Clear, maintainable code with comments on complex logic
+
+## Development Workflow
+
+1. Review feature planning docs in `.agents/planning/` or `docs/ways-of-work/plan/`
+2. Reference architecture and design decisions
+3. Use appropriate agent mode for the task
+4. Follow prompt patterns in `.agents/prompts/`
+5. Use relevant skill in `.agents/skills/` for guidance
+6. Write tests alongside code
+7. Verify accessibility and performance
+
+## Code Standards
+
+### File Naming
+- Components: PascalCase (`BlogCard.tsx`)
+- Functions/utilities: camelCase (`formatDate()`)
+- Constants: UPPER_SNAKE_CASE (`API_TIMEOUT`)
+- Files: kebab-case for pages (`page.tsx`), PascalCase for components
+
+### Component Structure
+```typescript
+// Props interface
+interface ComponentProps {
+  title: string;
+  onClick: () => void;
+}
+
+// Component with memo for list items
+export const ComponentName = React.memo(
+  ({ title, onClick }: ComponentProps) => {
+    return <div onClick={onClick}>{title}</div>;
+  }
+);
+
+ComponentName.displayName = 'ComponentName';
+```
+
+### API Routes
+- RESTful design with proper HTTP methods
+- Input validation with Zod or similar
+- Proper error handling and status codes
+- Rate limiting for public endpoints
+
+### Database
+- Use Prisma for all database operations
+- Keep migrations in `prisma/migrations/`
+- Update `seed.ts` for test data
+- Use Prisma types in TypeScript
+
+## Important Do's & Don'ts
+
+### ✅ Do:
+- Use `next/image` and `next/link` from Next.js
+- Write tests for all new features
+- Keep components under 300 lines
+- Use React hooks (hooks over class components)
+- Deploy frequently in small changes
+- Document complex logic with comments
+- Use environment variables for config
+- Run TypeScript in strict mode
+- Follow async/await patterns
+
+### ❌ Don't:
+- Use plain `<img>` tags (use `next/image`)
+- Use inline styles (use TailwindCSS)
+- Create large monolithic components
+- Skip accessibility attributes
+- Hard-code environment values
+- Deploy without testing
+- Ignore TypeScript errors
+- Leave console.log in production code
+- Create synchronous blocking operations
+
+## Available Agent Modes
+
+Activate agents with `@agent-name` syntax in Copilot Chat:
+
+### @devops-expert
+- Handles deployment, CI/CD, infrastructure
+- Use for: GitHub Actions workflows, Cloudflare setup, monitoring
+
+### @principal-engineer
+- Senior engineering perspective on code and architecture
+- Use for: Design reviews, refactoring, SOLID principles
+
+### @security-reviewer
+- Focuses on vulnerabilities, compliance, data protection
+- Use for: CV tool review, auth flows, file upload security
+
+### @technical-writer
+- Expertise in documentation and guides
+- Use for: API docs, user guides, architecture diagrams
+
+### @prompt-engineer
+- Helps craft better prompts and instructions
+- Use for: Improving prompt quality, testing AI interactions
+
+### @github-actions-expert
+- CI/CD pipelines and GitHub Actions automation
+- Use for: Workflow setup, GitHub Actions debugging
+
+### @repo-architect
+- Scaffolds and validates project structures
+- Use for: New feature structure, project reorganization
+
+### @cv-tool-specialist
+- Expert in CV Review Tool feature
+- Use for: CV feedback system, mentor interactions, file uploads
+
+## Project Structure Reference
+
+```
+QaiTAlk/
+├── .github/
+│   ├── copilot-instructions.md (this file)
+│   └── agents/                  (agent personas)
+├── .agents/
+│   ├── skills/                 (reusable workflows)
+│   ├── prompts/                (prompt patterns)
+│   └── planning/               (feature planning index)
+├── docs/                       (project documentation)
+├── next-app/
+│   ├── app/                   (Next.js App Router)
+│   ├── components/
+│   ├── lib/
+│   ├── prisma/                (database)
+│   ├── __tests__/             (unit tests)
+│   └── e2e/                   (E2E tests)
+└── llms.txt                    (AI discovery guide)
+```
+
+## Feature Planning
+
+All features use the `.agents/skills/feature-planning-workflow/` to generate:
+- PRD (Product Requirements)
+- Architecture design
+- Security assessment
+- Implementation plan
+- Testing strategy
+- Deployment plan
+
+Reference: `.agents/planning/README.md`
+
+## Testing Strategy
+
+### Test Pyramid
+- **Unit Tests** (80%) - Jest + React Testing Library
+- **Integration Tests** (15%) - API + component integration
+- **E2E Tests** (5%) - Critical user journeys with Playwright
+
+### Coverage Goals
+- Minimum 80% line coverage
+- 100% coverage for critical paths
+- All error cases tested
+- Accessibility tested with axe
+
+### Running Tests
+```bash
+npm run test                # Unit tests
+npm run test:coverage       # Coverage report
+npm run e2e                 # E2E tests
+npm run e2e:ui              # E2E with UI
+```
+
+## Deployment Checklist
+
+- [ ] All tests passing
+- [ ] No TypeScript errors
+- [ ] No console errors/warnings
+- [ ] Lighthouse score 90+
+- [ ] Accessibility audit passing
+- [ ] Security scan complete
+- [ ] Environment variables set
+- [ ] Database migrations run
+- [ ] Performance optimized
+- [ ] Documentation updated
+
+## Key Files & References
+
+- **Prompt Patterns:** `.agents/prompts/README.md`
+- **Skills Library:** `.agents/skills/README.md`
+- **CV Tool Planning:** `docs/ways-of-work/plan/cv-review-tool/`
+- **Development Guide:** `docs/DEVELOPMENT.md`
+- **Database Schema:** `next-app/prisma/schema.prisma`
+- **Project Structure:** `docs/PROJECT_STRUCTURE.md`
+
+## Common Tasks
+
+### Add a Blog Post
+Use `@devops-expert` or skill `blog-writing`
+- Modify `next-app/prisma/seed.ts`
+- Include title, date, excerpt, HTML content
+
+### Create a Page
+Use `@principal-engineer` or skill `page-creation`
+- Create folder in `next-app/app/[route]/`
+- Use existing components from `components/`
+
+### Update Database
+Use `@devops-expert` or skill `database-changes`
+- Edit `next-app/prisma/schema.prisma`
+- Run `prisma migrate dev --name [description]`
+
+### Build a Component
+Use `@principal-engineer` or skill `component-patterns`
+- Location: `next-app/components/sections/`
+- Include tests in `__tests__/components/`
+
+## External Resources
+
+- [Next.js Docs](https://nextjs.org/docs)
+- [Prisma Docs](https://www.prisma.io/docs)
+- [TailwindCSS Docs](https://tailwindcss.com/docs)
+- [Awesome Copilot](https://github.com/github/awesome-copilot)
+- [llmstxt Spec](https://llmstxt.org/)
+
+---
+
+*Last updated: February 10, 2026*
