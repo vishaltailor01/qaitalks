@@ -24,11 +24,39 @@ QaiTAlk is a full-stack Next.js mentorship platform connecting mentors with job 
 5. **Testing** - 80%+ code coverage minimum
 6. **Documentation** - Clear, maintainable code with comments on complex logic
 
+## Default Workflow (All Requests)
+
+**Every feature request or change follows this workflow automatically:**
+
+1. **Discover** - Search `.agents/skills/` for relevant workflows + match `.github/agents/` personas
+2. **Research & Plan** - Read skill docs, agent guidance, audit codebase
+3. **Clarify** - Ask questions to validate assumptions before proceeding
+4. **Present Plan** - Comprehensive design for approval before implementation
+5. **Execute** - Handoff to specialized agents or implement using skill guidance
+
+### Agent Selection Logic
+Use the Agent Selection Matrix below to determine which agents to consult.
+
+### Agent Selection Matrix
+
+| Task Type | Primary Agent | Secondary Agents |
+|-----------|---------------|------------------|
+| New Feature | `@feature-implementation-specialist` | `@security-reviewer`, domain-specific agent |
+| API Design | `@api-design-specialist` | `@performance-optimization-specialist` |
+| Database/Schema | `@data-modeling-specialist` | `@performance-optimization-specialist` |
+| Performance Issue | `@performance-optimization-specialist` | `@api-design-specialist` |
+| Security Review | `@security-reviewer` | `@feature-implementation-specialist` |
+| CV Tool Feature | `@cv-tool-specialist` | `@security-reviewer`, `@api-design-specialist` |
+| System Design | `@se-system-architecture-reviewer` | `@principal-engineer` |
+| Deployment/CI | `@devops-expert` | `@github-actions-expert` |
+| Code Architecture | `@principal-engineer` | `@se-system-architecture-reviewer` |
+| Documentation | `@technical-writer` | domain-specific agent |
+
 ## Development Workflow
 
 1. Review feature planning docs in `.agents/planning/` or `docs/ways-of-work/plan/`
-2. Reference architecture and design decisions
-3. Use appropriate agent mode for the task
+2. Reference architecture and design decisions  
+3. Use appropriate agent mode for the task (see Agent Selection Matrix)
 4. Follow prompt patterns in `.agents/prompts/`
 5. Use relevant skill in `.agents/skills/` for guidance
 6. Write tests alongside code
@@ -100,25 +128,51 @@ ComponentName.displayName = 'ComponentName';
 
 Activate agents with `@agent-name` syntax in Copilot Chat:
 
-### @devops-expert
-- Handles deployment, CI/CD, infrastructure
-- Use for: GitHub Actions workflows, Cloudflare setup, monitoring
+### Feature & Implementation Agents
+
+### @feature-implementation-specialist
+- Designs and plans features comprehensively
+- Covers design, data modeling, APIs, UX, security, compliance
+- Use for: New feature planning, feature design review, change proposals
+
+### @api-design-specialist
+- Designs RESTful APIs and contracts
+- Covers endpoints, request/response schemas, status codes, documentation
+- Use for: API design review, endpoint planning, contract definition
+
+### @data-modeling-specialist
+- Designs database schemas and migrations
+- Covers Prisma schema, relationships, indexing, GDPR compliance
+- Use for: Schema design, migration planning, query optimization
+
+### @performance-optimization-specialist
+- Optimizes for speed and efficiency
+- Covers Lighthouse, Core Web Vitals, caching, monitoring
+- Use for: Performance issues, optimization strategy, monitoring setup
+
+### Domain-Specific Agents
+
+### @cv-tool-specialist
+- Expert in CV Review Tool feature
+- Use for: CV feedback system, mentor interactions, file uploads
+
+### Architecture & Operations Agents
 
 ### @principal-engineer
 - Senior engineering perspective on code and architecture
 - Use for: Design reviews, refactoring, SOLID principles
 
+### @se-system-architecture-reviewer
+- System design and architecture review
+- Use for: System design, scalability, integration patterns
+
 ### @security-reviewer
 - Focuses on vulnerabilities, compliance, data protection
-- Use for: CV tool review, auth flows, file upload security
+- Use for: Security audits, auth flows, file upload security, GDPR review
 
-### @technical-writer
-- Expertise in documentation and guides
-- Use for: API docs, user guides, architecture diagrams
-
-### @prompt-engineer
-- Helps craft better prompts and instructions
-- Use for: Improving prompt quality, testing AI interactions
+### @devops-expert
+- Handles deployment, CI/CD, infrastructure
+- Use for: GitHub Actions workflows, Cloudflare setup, monitoring
 
 ### @github-actions-expert
 - CI/CD pipelines and GitHub Actions automation
@@ -128,9 +182,13 @@ Activate agents with `@agent-name` syntax in Copilot Chat:
 - Scaffolds and validates project structures
 - Use for: New feature structure, project reorganization
 
-### @cv-tool-specialist
-- Expert in CV Review Tool feature
-- Use for: CV feedback system, mentor interactions, file uploads
+### @technical-writer
+- Expertise in documentation and guides
+- Use for: API docs, user guides, architecture diagrams
+
+### @prompt-engineer
+- Helps craft better prompts and instructions
+- Use for: Improving prompt quality, testing AI interactions
 
 ## Project Structure Reference
 
@@ -242,3 +300,4 @@ Use `@principal-engineer` or skill `component-patterns`
 ---
 
 *Last updated: February 10, 2026*
+*Agents system: 4 new specialists added (feature-implementation, api-design, performance-optimization, data-modeling)*
