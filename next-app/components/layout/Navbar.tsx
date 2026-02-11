@@ -33,6 +33,12 @@ export default function Navbar() {
             <Link href="/blog" className="text-text-slate hover:text-deep-blueprint transition font-medium">
               Blog
             </Link>
+            <Link 
+              href="/cv-review" 
+              className="px-4 py-2 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-logic-cyan/30 transition-all duration-300"
+            >
+              🤖 CV Review
+            </Link>
           </div>
         </div>
       </div>

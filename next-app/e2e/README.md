@@ -29,6 +29,7 @@ npm run test:e2e:report
 | **blog.spec.ts** | Blog listing page, blog detail pages, responsiveness, metadata |
 | **curriculum.spec.ts** | Curriculum page, module expand/collapse, responsiveness |
 | **about.spec.ts** | About page content, navigation, heading hierarchy, keyboard nav |
+| **cv-review.spec.ts** | CV Review Tool form, validation, results, PDF export, history, accessibility (19 tests) |
 | **auth.spec.ts** | Login page, OAuth buttons, accessibility, form elements |
 | **smoke.spec.ts** | Critical user flows, page titles, load times, no broken images |
 

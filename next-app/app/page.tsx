@@ -143,6 +143,114 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CV Review Tool Highlight Section */}
+      <section className="py-20 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div>
+              <div className="inline-block mb-4 px-3 py-1 bg-logic-cyan/10 border-2 border-logic-cyan rounded-full font-mono text-xs font-semibold text-logic-cyan-bright tracking-widest">
+                🤖 NEW TOOL
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-deep-blueprint mb-6 leading-tight">
+                AI-Powered CV Review & Interview Prep
+              </h2>
+              <p className="text-lg text-text-slate mb-6 leading-relaxed">
+                Get instant, actionable feedback on your resume with our AI-powered tool. 
+                Optimize for ATS systems, prepare for interviews with STAR+ method questions, 
+                and identify skills gaps before you apply.
+              </p>
+              
+              {/* Features List */}
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-start gap-3">
+                  <span className="text-lg">✅</span>
+                  <span className="text-slate-700"><strong>ATS Optimization:</strong> Keyword matching and formatting tips</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-lg">✅</span>
+                  <span className="text-slate-700"><strong>Interview Questions:</strong> Personalized STAR+ method prep</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-lg">✅</span>
+                  <span className="text-slate-700"><strong>Domain Questions:</strong> Technical scenario-based questions</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-lg">✅</span>
+                  <span className="text-slate-700"><strong>Gap Analysis:</strong> Skills recommendations for your target role</span>
+                </li>
+              </ul>
+
+              <Link
+                href="/cv-review"
+                className="inline-block px-8 py-4 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-bold text-lg hover:shadow-2xl hover:shadow-logic-cyan/50 transition-all duration-300 transform hover:scale-105"
+              >
+                🚀 Try CV Review Tool (Free)
+              </Link>
+            </div>
+
+            {/* Right Visual */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl p-8 border-2 border-deep-blueprint/10 shadow-xl">
+                <div className="bg-white rounded-lg p-6 mb-4 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">
+                      ✓
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-slate-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-2 bg-slate-100 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2 bg-slate-100 rounded"></div>
+                    <div className="h-2 bg-slate-100 rounded w-5/6"></div>
+                    <div className="h-2 bg-slate-100 rounded w-4/6"></div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg p-6 mb-4 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">
+                      🎤
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-slate-200 rounded w-2/3 mb-2"></div>
+                      <div className="h-2 bg-slate-100 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2 bg-slate-100 rounded"></div>
+                    <div className="h-2 bg-slate-100 rounded w-4/5"></div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 border border-slate-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-xl">
+                      📊
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-slate-200 rounded w-3/5 mb-2"></div>
+                      <div className="h-2 bg-slate-100 rounded w-2/5"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-2 bg-slate-100 rounded w-full"></div>
+                    <div className="h-2 bg-slate-100 rounded w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Badge */}
+              <div className="absolute -top-4 -right-4 bg-warning-amber text-deep-blueprint px-4 py-2 rounded-lg font-bold text-sm shadow-lg transform rotate-3 border-2 border-deep-blueprint">
+                100% Private
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-deep-blueprint to-blue-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

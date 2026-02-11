@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import Image from "next/image"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getPrisma } from "@/lib/db"
@@ -114,12 +115,15 @@ export default async function BlogPostPage({
 
       {/* Featured Image Section */}
       <section className="bg-white border-y-2 border-deep-blueprint/10 py-0 px-6 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto relative h-96">
           {post.image && (
-            <img 
+            <Image 
               src={post.image} 
               alt={post.title}
-              className="w-full h-96 object-cover"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover"
             />
           )}
           {!post.image && (

@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import Link from "next/link"
+import Image from "next/image"
 import type { Metadata } from "next"
 import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
@@ -15,7 +16,6 @@ function calculateReadingTime(content: string): number {
 
 // Determine category from title keywords
 function getCategory(title: string, slug: string): { name: string; color: string; icon: string } {
-  const titleLower = title.toLowerCase()
   const slugLower = slug.toLowerCase()
   
   if (slugLower.includes('playwright') || slugLower.includes('selenium')) return { name: 'Testing', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '🧪' }
@@ -98,10 +98,12 @@ export default async function BlogPage() {
                       {/* Featured Image */}
                       <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden flex items-center justify-center">
                         {post.image ? (
-                          <img 
+                          <Image 
                             src={post.image} 
                             alt={post.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20 group-hover:scale-110 transition-transform duration-300">
