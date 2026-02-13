@@ -41,18 +41,16 @@ test.describe('Blog Pages', () => {
 
   test('should have back navigation on blog post', async ({ page }) => {
     await page.goto('/blog/contract-testing');
-    
-    // Check for back link or breadcrumb
-    const backLink = page.locator('a[href="/blog"]');
+    // Use a unique selector for the back navigation link
+    const backLink = page.getByRole('link', { name: /Back to Blog/i });
     await expect(backLink).toBeVisible();
   });
 
   test('should display blog metadata', async ({ page }) => {
     await page.goto('/blog/contract-testing');
-    
-    // Check for author/date info
-    const metadata = page.locator('text=/Published|Author|Date/i');
-    await expect(metadata).toBeVisible();
+    // Check for the unique Published: metadata label
+    const publishedLabel = page.getByText('Published:', { exact: true });
+    await expect(publishedLabel).toBeVisible();
   });
 
   test('should be responsive on mobile', async ({ page }) => {

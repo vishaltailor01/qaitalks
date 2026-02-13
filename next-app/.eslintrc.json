@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "plugins": ["jsx-a11y"],
+  "rules": {
+    "jsx-a11y/aria-proptypes": 0,
+    "jsx-a11y/aria-unsupported-elements": 0,
+    "jsx-a11y/aria-role": 1,
+    "jsx-a11y/aria-allowed-attr": 0,
+    "jsx-a11y/no-noninteractive-element-to-interactive-role": 0
+  }
+}

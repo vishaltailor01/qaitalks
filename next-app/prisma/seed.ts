@@ -5,13 +5,13 @@ const prisma = new PrismaClient()
 const blogPosts = [
   {
     slug: 'pom-is-dead',
-    title: 'Why Page Object Model is Dead',
-    description: 'POM is obsolete. Screenplay pattern and component-based testing provide better reusability and maintainability for modern UI test automation frameworks.',
+    title: 'Why the Page Object Model is Dead: Modern UI Test Automation',
+    description: 'Discover why the Page Object Model is obsolete and how the Screenplay pattern and component-based testing deliver better reusability, maintainability, and speed for modern UI test automation frameworks.',
     image: '/blog/pom-is-dead.svg',
     content: `
+      <img src="/blog/pom-is-dead.svg" alt="Illustration showing the evolution from Page Object Model to Screenplay pattern and component-based testing" style="max-width:100%;height:auto;" />
       <h2>The Evolution of Test Architecture</h2>
-      <p>For years, the Page Object Model (POM) has been the gold standard for structuring UI test automation. But as frameworks and applications have evolved, POM's limitations have become increasingly apparent.</p>
-      
+      <p>For years, the Page Object Model (POM) was the gold standard for structuring UI test automation. But as frameworks and applications have evolved, POM's limitations have become increasingly apparent.</p>
       <h2>The Problems with Traditional POM</h2>
       <p>Traditional POM suffers from several critical issues:</p>
       <ul>
@@ -19,17 +19,15 @@ const blogPosts = [
         <li><strong>Maintenance Nightmare:</strong> Changes to the UI require updates across multiple page objects, leading to brittle tests.</li>
         <li><strong>Scalability Issues:</strong> As applications grow, the number of page objects explodes, making the codebase unwieldy.</li>
       </ul>
-      
       <h2>Enter the Screenplay Pattern</h2>
-      <p>The Screenplay pattern represents a paradigm shift in test automation. Instead of modeling pages, it models user interactions as a series of tasks, actions, and questions. This approach provides:</p>
+      <p>The Screenplay pattern represents a paradigm shift in test automation. Instead of modelling pages, it models user interactions as a series of tasks, actions, and questions. This approach provides:</p>
       <ul>
         <li>Better separation of concerns</li>
         <li>Higher reusability of test components</li>
         <li>More maintainable test code</li>
         <li>Clearer test intent</li>
       </ul>
-      
-      <pre><code>// Traditional POM
+      <pre><code class="language-js">// Traditional POM
 const loginPage = new LoginPage();
 loginPage.enterUsername('user@example.com');
 loginPage.enterPassword('password123');
@@ -39,7 +37,6 @@ loginPage.clickSubmit();
 await actor.attemptsTo(
   Login.withCredentials('user@example.com', 'password123')
 );</code></pre>
-      
       <h2>Component-Based Testing</h2>
       <p>Modern frameworks like React and Vue have embraced component-based architecture. Our testing strategies should follow suit. Component-based testing focuses on reusable UI components rather than entire pages, providing:</p>
       <ul>
@@ -47,19 +44,20 @@ await actor.attemptsTo(
         <li>Easier to test components in isolation</li>
         <li>Reduced duplication across test suites</li>
       </ul>
-      
       <h2>The Future is Now</h2>
       <p>While POM served us well for many years, it's time to evolve. Modern test automation demands patterns that are more flexible, maintainable, and aligned with current development practices. The Screenplay pattern and component-based testing represent the future of UI test automation.</p>
+      <p>For more on scaling your E2E tests, see <a href="/blog/scaling-playwright">Scaling Playwright to 1000 Nodes</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-10-24'),
   },
   {
     slug: 'contract-testing',
-    title: 'Contract Testing with Pact',
-    description: 'Consumer-driven contracts verify microservice integrations in milliseconds instead of hours. Replace slow E2E tests with fast, reliable contract tests.',
+    title: 'Contract Testing with Pact: Fast, Reliable Microservice Integration',
+    description: 'Consumer-driven contract testing with Pact verifies microservice integrations in milliseconds, replacing slow E2E tests and enabling fast, reliable, and independent deployments.',
     image: '/blog/contract-testing.svg',
     content: `
+      <img src="/blog/contract-testing.svg" alt="Diagram showing contract testing workflow with Pact for microservices" style="max-width:100%;height:auto;" />
       <h2>The End-to-End Trap</h2>
       <p>In mid-to-large distributed systems, end-to-end (E2E) tests often become the bottleneck. They are slow, flaky, and require a stable environment with all dependencies deployed. When a test fails in a 50-service ecosystem, finding the root cause is a nightmare.</p>
       
@@ -121,16 +119,18 @@ pactWith({ consumer: 'MyOrderApp', provider: 'OrderService' }, provider => {
       
       <h2>Getting Started</h2>
       <p>Start small. Pick one critical integration between two services. Write consumer tests for that integration. Verify the provider. Gradually expand coverage. In a few months, you'll have significantly reduced your E2E test suite while increasing confidence and speed.</p>
+      <p>For more on test architecture, see <a href="/blog/pom-is-dead">Why the Page Object Model is Dead</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-10-12'),
   },
   {
     slug: 'scaling-playwright',
-    title: 'Scaling Playwright to 1000 Nodes',
-    description: 'Reduce test suite execution from 4 hours to 8 minutes using sharding, Docker containers, and transient infrastructure. Cost-effective at scale.',
+    title: 'Scaling Playwright Tests to 1000 Nodes: Fast, Reliable CI/CD',
+    description: 'Reduce your test suite execution from 4 hours to 8 minutes using Playwright sharding, Docker containers, and transient infrastructure. Achieve cost-effective, scalable CI/CD for modern teams.',
     image: '/blog/scaling-playwright.svg',
     content: `
+      <img src="/blog/scaling-playwright.svg" alt="Visualisation of Playwright test sharding and distributed execution across 1000 nodes" style="max-width:100%;height:auto;" />
       <h2>The Challenge</h2>
       <p>Our test suite had grown to over 10,000 tests. Running them sequentially took 4+ hours. Even with 10 parallel workers, we were still looking at 40+ minutes. For a team practicing continuous deployment, this was unacceptable.</p>
       
@@ -207,16 +207,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
       </ul>
       
       <p>Scaling to 1000 nodes wasn't just about speed—it transformed how our team thinks about testing. Fast feedback enables true continuous deployment.</p>
+      <p>For Playwright best practices, see <a href="/blog/playwright-e2e-testing-professional">Playwright E2E Testing at Scale</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-09-28'),
   },
   {
     slug: 'shift-left-testing-enterprise',
-    title: 'Shift-Left Testing: Enterprise Quality',
-    description: 'Detect bugs at design phase, not production. Shift-left testing reduces release cycles by 40% and builds quality into enterprise development workflows.',
+    title: 'Shift-Left Testing for Enterprise: Building Quality from Day One',
+    description: 'Detect bugs at the design phase, not in production. Shift-left testing reduces release cycles by 40% and builds quality into enterprise development workflows, saving time and money.',
     image: '/blog/shift-left-testing-enterprise.svg',
     content: `
+      <img src="/blog/shift-left-testing-enterprise.svg" alt="Shift-left testing pyramid for enterprise quality" style="max-width:100%;height:auto;" />
       <h2>What is Shift-Left Testing?</h2>
       <p>Shift-Left testing means moving quality assurance activities further to the left in the software development lifecycle. Instead of testing only after development is complete, you integrate testing from the design phase onwards.</p>
       <p>This paradigm shift has transformed enterprise testing: E-Commerce, Insurance, Public Sector, and SaaS companies have all achieved 60%+ reductions in production incidents through shift-left practices.</p>
@@ -255,17 +257,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>Shift-left testing transforms quality from a gate to a practice woven throughout development. In enterprise environments where release cost and risk are high, shifting left delivers measurable ROI: fewer production incidents, faster releases, and confident deployments.</p>
-      <p>For technical practices that support shift-left, explore <a href="/blog/web-security-production-applications">web security and production hardening</a>.</p>
+      <p>For technical practices that support shift-left, explore <a href="/blog/web-security-production-applications">web security and production hardening</a> and <a href="/blog/prisma-database-design-optimization">Prisma database optimisation</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-08'),
   },
   {
     slug: 'selenium-java-automation-framework-ecommerce',
-    title: 'Selenium-Java for E-Commerce Testing',
-    description: 'Production-grade framework using POM, parallel execution, and intelligent flaky test management. Run 2000 checkout tests in 35 minutes, not 6 hours.',
+    title: 'Selenium-Java for E-Commerce: Fast, Reliable Checkout Testing',
+    description: 'A production-grade Selenium-Java framework using POM, parallel execution, and intelligent flaky test management. Run 2,000 checkout tests in 35 minutes, not 6 hours, and boost reliability.',
     image: '/blog/selenium-java-automation-framework-ecommerce.svg',
     content: `
+      <img src="/blog/selenium-java-automation-framework-ecommerce.svg" alt="Selenium-Java automation for e-commerce checkout testing" style="max-width:100%;height:auto;" />
       <h2>Why Selenium + Java for E-Commerce?</h2>
       <p>E-commerce platforms are the most demanding testing environments. Every second of downtime costs money. Every checkout bug loses customers permanently. A well-architected Selenium-Java framework provides the safety net needed for high-reliability systems.</p>
       <ul>
@@ -305,17 +308,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>A production-grade Selenium-Java framework is the difference between a 6-hour test run and 35 minutes. Between debugging flaky tests and confidently deploying. In e-commerce, where every checkout bug costs thousands of pounds, this framework pays for itself on day one.</p>
-      <p>For modern browser automation alternatives, check <a href="/blog/playwright-e2e-testing-professional">Playwright E2E testing at scale</a>.</p>
+      <p>For modern browser automation alternatives, check <a href="/blog/playwright-e2e-testing-professional">Playwright E2E testing at scale</a> or <a href="/blog/scaling-playwright">Scaling Playwright to 1000 Nodes</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-07'),
   },
   {
     slug: 'nextjs-16-development-mastery',
-    title: 'Next.js 16 Mastery: Server Components',
-    description: 'Master Next.js 16 with React 19: App Router, Server/Client Components, Zod forms, TypeScript, and patterns that reduce JS bundle size 40-60%.',
+    title: 'Next.js 16 Mastery: Server Components, App Router, and Performance',
+    description: 'Master Next.js 16 and React 19: App Router, Server/Client Components, Zod forms, TypeScript, and patterns that reduce JavaScript bundle size by 40–60% for lightning-fast web apps.',
     image: '/blog/nextjs-16-development-mastery.svg',
     content: `
+      <img src="/blog/nextjs-16-development-mastery.svg" alt="Next.js 16 and React 19 server components and app router architecture" style="max-width:100%;height:auto;" />
       <h2>Why Next.js 16 Dominates Modern Frontend Development</h2>
       <p>Next.js 16 with React 19 represents a fundamental shift in how we build web applications. The App Router, Server Components, and native streaming enable building applications that are simultaneously fast, scalable, and developer-friendly.</p>
       <ul>
@@ -353,17 +357,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>Next.js 16 with React 19 is the most productive way to build modern web applications. Server Components eliminate JavaScript bloat, types provide confidence, and built-in optimisations mean your first build is nearly production-ready. Master these patterns and you'll build applications that are fast, scalable, and maintainable.</p>
-      <p>For data layer patterns, explore <a href="/blog/prisma-database-design-optimization">Prisma optimisation and N+1 prevention</a>.</p>
+      <p>For data layer patterns, explore <a href="/blog/prisma-database-design-optimization">Prisma optimisation and N+1 prevention</a> or our <a href="/curriculum">curriculum</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-06'),
   },
   {
     slug: 'prisma-database-design-optimization',
-    title: 'Prisma Optimisation: Preventing N+1 Queries',
-    description: 'Master Prisma ORM: schema design, N+1 prevention, indexing strategies, migrations, and query patterns that scale to millions of records.',
+    title: 'Prisma Optimisation: Preventing N+1 Queries and Scaling Gracefully',
+    description: 'Master Prisma ORM: schema design, N+1 prevention, indexing strategies, migrations, and query patterns that scale to millions of records. Avoid performance pitfalls and build robust apps.',
     image: '/blog/prisma-database-design-optimization.svg',
     content: `
+      <img src="/blog/prisma-database-design-optimization.svg" alt="Prisma ORM schema design and N+1 query prevention" style="max-width:100%;height:auto;" />
       <h2>Why Database Design Matters: The Cost of Poor Queries</h2>
       <p>A single N+1 query bug can slow a page from 100ms to 5 seconds. Poorly indexed queries that work fine with 1,000 rows fail catastrophically with 1 million rows. This is why database performance is non-negotiable for scaling applications.</p>
       <p>Prisma makes database design accessible to frontend developers, but this comes with responsibility—bad database patterns become catastrophic at scale.</p>
@@ -398,17 +403,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>Database design and query optimisation are the foundation of scalable applications. Understanding Prisma, N+1 patterns, indexing, and migration strategies separates applications that scale gracefully from those that crumble under load. Master these patterns early and your future self will thank you.</p>
-      <p>Pair Prisma excellence with <a href="/blog/web-security-production-applications">production security practices</a> to protect your data.</p>
+      <p>Pair Prisma excellence with <a href="/blog/web-security-production-applications">production security practices</a> and <a href="/blog/shift-left-testing-enterprise">shift-left testing</a> to protect your data.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-05'),
   },
   {
     slug: 'web-security-production-applications',
-    title: 'Web Security: Defence Against XSS & CSRF',
-    description: 'Production security essentials: prevent XSS/CSRF/injection attacks, rate limiting, HTTPS, security headers, and pre-deployment security checklist.',
+    title: 'Web Security: Defence Against XSS, CSRF, and Modern Threats',
+    description: 'Production security essentials: prevent XSS, CSRF, and injection attacks, implement rate limiting, enforce HTTPS, set security headers, and follow a pre-deployment security checklist for robust protection.',
     image: '/blog/web-security-production-applications.svg',
     content: `
+      <img src="/blog/web-security-production-applications.svg" alt="Web security checklist for XSS, CSRF, and production hardening" style="max-width:100%;height:auto;" />
       <h2>The Reality of Web Security: Production Incidents Are Expensive</h2>
       <p>A single security breach costs organisations £3M on average. Exposed user data, downtime, legal fees, and lost trust compound quickly. Yet security is often treated as an afterthought rather than a first-class engineering concern.</p>
       <p>This guide covers practical, implementable security practices that reduce your risk exposure by 95%.</p>
@@ -458,17 +464,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>By understanding XSS, CSRF, SQL injection, and implementing defence-in-depth strategies (validation, rate limiting, encryption, monitoring), you build applications that withstand attacks and protect user data. Security is a requirement, not a feature.</p>
-      <p>Combine security with <a href="/blog/web-accessibility-wcag-21-compliance">accessibility practices</a> to build inclusive, protected applications.</p>
+      <p>Combine security with <a href="/blog/web-accessibility-wcag-21-compliance">accessibility practices</a> and <a href="/blog/technical-seo-engineering-blog">technical SEO</a> to build inclusive, protected applications.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-04'),
   },
   {
     slug: 'technical-seo-engineering-blog',
-    title: 'Technical SEO for Engineering Blogs',
-    description: 'SEO fundamentals: meta tags, Core Web Vitals, content strategy, heading hierarchy, internal linking, and Lighthouse optimisation for ranking.',
+    title: 'Technical SEO for Engineering Blogs: Ranking, Core Web Vitals, and Content Strategy',
+    description: 'SEO fundamentals for engineers: meta tags, Core Web Vitals, content strategy, heading hierarchy, internal linking, and Lighthouse optimisation to help your blog rank and reach your audience.',
     image: '/blog/technical-seo-engineering-blog.svg',
     content: `
+      <img src="/blog/technical-seo-engineering-blog.svg" alt="Technical SEO for engineering blogs: meta tags, Core Web Vitals, and content strategy" style="max-width:100%;height:auto;" />
       <h2>Why Engineers Should Care About SEO</h2>
       <p>You write amazing technical content. But if no one discovers it through search engines, your work reaches only direct visitors. Technical SEO ensures your content ranks in Google, Reddit, and web search—where your audience is looking for solutions.</p>
 
@@ -506,17 +513,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>SEO and good engineering align perfectly: semantic HTML, fast page speed, accessibility, clear information architecture. By implementing these practices, your technical content reaches the audience searching for solutions. Your blog becomes a resource rather than a forgotten project.</p>
-      <p>Improve your site's accessibility further by reading <a href="/blog/web-accessibility-wcag-21-compliance">WCAG 2.1 compliance guidance</a>.</p>
+      <p>Improve your site's accessibility further by reading <a href="/blog/web-accessibility-wcag-21-compliance">WCAG 2.1 compliance guidance</a> or our <a href="/curriculum">curriculum</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-03'),
   },
   {
     slug: 'web-accessibility-wcag-21-compliance',
-    title: 'Web Accessibility: WCAG 2.1 Level AA',
-    description: 'Accessibility essentials: colour contrast, keyboard navigation, screen readers, ARIA, semantic HTML, and WCAG 2.1 Level AA compliance checklist.',
+    title: 'Web Accessibility: WCAG 2.1 Level AA Essentials',
+    description: 'Accessibility essentials: colour contrast, keyboard navigation, screen readers, ARIA, semantic HTML, and WCAG 2.1 Level AA compliance checklist. Build inclusive, legally compliant web apps.',
     image: '/blog/web-accessibility-wcag-21-compliance.svg',
     content: `
+      <img src="/blog/web-accessibility-wcag-21-compliance.svg" alt="Web accessibility and WCAG 2.1 Level AA compliance essentials" style="max-width:100%;height:auto;" />
       <h2>Why Accessibility Matters: Legal, Ethical, and Business Reasons</h2>
       <p>15% of the global population (1.3 billion people) have disabilities affecting vision, hearing, mobility, or cognition. Web accessibility ensures these users can use your application.</p>
       <p>Legal perspective: The ADA (Americans with Disabilities Act) applies to websites. WCAG 2.1 Level AA is the accessibility standard. Non-compliance risks lawsuits and costly redesigns.</p>
@@ -565,17 +573,18 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>Building accessible web applications is not altruism—it's engineering excellence. Semantic HTML, keyboard navigation, clear labels, colour contrast, and screen reader testing ensure your application works for everyone. WCAG 2.1 Level AA is the standard. Implement it from day one, not as an afterthought.</p>
-      <p>Discover how <a href="/blog/technical-seo-engineering-blog">technical SEO can amplify your accessible content</a>.</p>
+      <p>Discover how <a href="/blog/technical-seo-engineering-blog">technical SEO can amplify your accessible content</a> or explore our <a href="/curriculum">curriculum</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-02'),
   },
   {
     slug: 'playwright-e2e-testing-professional',
-    title: 'Playwright E2E Testing at Scale',
-    description: 'Playwright best practices: page objects, fixtures, parallel execution, cross-browser testing, flaky test prevention, and CI/CD integration.',
+    title: 'Playwright E2E Testing at Scale: Best Practices for Fast, Reliable Automation',
+    description: 'Playwright best practices: page objects, fixtures, parallel execution, cross-browser testing, flaky test prevention, and CI/CD integration. Ship with confidence and speed.',
     image: '/blog/playwright-e2e-testing-professional.svg',
     content: `
+      <img src="/blog/playwright-e2e-testing-professional.svg" alt="Playwright E2E testing best practices and CI/CD integration" style="max-width:100%;height:auto;" />
       <h2>Why Playwright Dominates E2E Testing</h2>
       <p>Playwright (Microsoft) and Cypress are the modern E2E testing frameworks. Playwright wins on: cross-browser support (Chrome, Firefox, Safari, Edge), multiple programming languages (JS, Python, Java), fast execution, and enterprise reliability.</p>
       <ul>
@@ -624,7 +633,7 @@ CMD ["npx", "playwright", "test", "--shard=$SHARD_INDEX/$SHARD_TOTAL"]</code></p
 
       <h2>Conclusion</h2>
       <p>Playwright is the modern standard for E2E testing. Combined with proper architecture (Page Objects, fixtures, API tests), parallel execution, and CI/CD integration, you achieve fast, reliable test suites that catch bugs before production. Master Playwright and your applications ship with confidence.</p>
-      <p>Ready to scale your testing? Check <a href="/blog/scaling-playwright">scaling Playwright to 1000 nodes</a>.</p>
+      <p>Ready to scale your testing? Check <a href="/blog/scaling-playwright">scaling Playwright to 1000 nodes</a> or <a href="/curriculum">our curriculum</a>.</p>
     `,
     published: true,
     publishedAt: new Date('2026-02-01'),

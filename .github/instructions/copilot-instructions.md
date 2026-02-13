@@ -28,14 +28,35 @@ QaiTAlk is a full-stack Next.js mentorship platform connecting mentors with job 
 
 **Every feature request or change follows this workflow automatically:**
 
-1. **Discover** - Search `.agents/skills/` for relevant workflows + match `.github/agents/` personas
-2. **Research & Plan** - Read skill docs, agent guidance, audit codebase
-3. **Clarify** - Ask questions to validate assumptions before proceeding
-4. **Present Plan** - Comprehensive design for approval before implementation
-5. **Execute** - Handoff to specialized agents or implement using skill guidance
+### 0. Auto-Route (Intelligent Request Analysis)
+The **Smart Router** (`@smart-router`) automatically analyzes your request to determine:
+- **Intent**: What type of work? (debug, feature, refactor, etc.)
+- **Domain**: Which system? (CV tool, blog, auth, etc.)
+- **Complexity**: Simple, moderate, or complex?
+- **Best Agent(s)**: Which specialist(s) should handle this?
+
+**How it works:**
+- **High Confidence (>90%)**: Automatically routes to appropriate specialist(s) and proceeds
+- **Medium Confidence (50-90%)**: Brief confirmation before routing
+- **Low Confidence (<50%)**: Asks clarifying questions first
+
+**Override Options:**
+- Use explicit agent syntax (`@agent-name`) to skip auto-routing
+- Say "just you handle it" to avoid specialist delegation
+- Simple questions are answered directly without routing
+
+See `.github/agents/smart-router.agent.md` for full routing logic and patterns.
+
+---
+
+### 1. **Discover** - Search `.agents/skills/` for relevant workflows + match `.github/agents/` personas
+### 2. **Research & Plan** - Read skill docs, agent guidance, audit codebase
+### 3. **Clarify** - Ask questions to validate assumptions before proceeding
+### 4. **Present Plan** - Comprehensive design for approval before implementation
+### 5. **Execute** - Handoff to specialized agents or implement using skill guidance
 
 ### Agent Selection Logic
-Use the Agent Selection Matrix below to determine which agents to consult.
+The Smart Router uses the Agent Selection Matrix below as its base reference, enhanced with domain-specific keyword matching and confidence scoring.
 
 ### Agent Selection Matrix
 
@@ -47,6 +68,9 @@ Use the Agent Selection Matrix below to determine which agents to consult.
 | Performance Issue | `@performance-optimization-specialist` | `@api-design-specialist` |
 | Security Review | `@security-reviewer` | `@feature-implementation-specialist` |
 | CV Tool Feature | `@cv-tool-specialist` | `@security-reviewer`, `@api-design-specialist` |
+| AI/LLM Integration | `@ai-integration-specialist` | `@prompt-engineer`, `@security-reviewer` |
+| Error Tracking/Monitoring | `@monitoring-specialist` | `@devops-expert`, `@performance-optimization-specialist` |
+| Blog/Curriculum Content | `@content-management-specialist` | `@technical-writer`, `@seo-specialist` |
 | System Design | `@se-system-architecture-reviewer` | `@principal-engineer` |
 | Deployment/CI | `@devops-expert` | `@github-actions-expert` |
 | Code Architecture | `@principal-engineer` | `@se-system-architecture-reviewer` |
@@ -128,6 +152,15 @@ ComponentName.displayName = 'ComponentName';
 
 Activate agents with `@agent-name` syntax in Copilot Chat:
 
+### System Agents
+
+### @smart-router
+- **Auto-invoked**: Analyzes ALL requests automatically (unless explicit agent specified)
+- Routes requests to appropriate specialist(s) based on intent, domain, and complexity
+- Coordinates multi-agent workflows when needed
+- Use explicitly when: You want to see routing analysis for a complex request
+- See `.github/agents/smart-router.agent.md` for full routing patterns
+
 ### Feature & Implementation Agents
 
 ### @feature-implementation-specialist
@@ -155,6 +188,21 @@ Activate agents with `@agent-name` syntax in Copilot Chat:
 ### @cv-tool-specialist
 - Expert in CV Review Tool feature
 - Use for: CV feedback system, mentor interactions, file uploads
+
+### @ai-integration-specialist
+- Expert in AI/LLM integration (Gemini API, RAG, embeddings)
+- Covers prompt engineering, streaming responses, model selection, token optimization
+- Use for: Gemini API integration, prompt design, RAG architecture, AI feature development
+
+### @monitoring-specialist
+- Expert in error tracking, observability, and performance monitoring
+- Covers Sentry setup, error boundaries, Core Web Vitals, structured logging, alerting
+- Use for: Error tracking setup, observability strategy, monitoring dashboards, health checks
+
+### @content-management-specialist
+- Expert in blog and curriculum content management
+- Covers blog authoring, MDX integration, Prisma seed data, SEO optimization
+- Use for: Blog post creation, curriculum design, content workflows, SEO strategy
 
 ### Architecture & Operations Agents
 

@@ -200,8 +200,9 @@ model BlogPost {
 - AI analyzes fit and generates personalized feedback
 - Multi-section output for complete preparation
 
+
 **Outputs Generated:**
-1. **ATS-Optimized Resume**: Keyword-matched suggestions for Applicant Tracking System visibility
+1. **ATS-Optimized Resume**: Keyword-matched suggestions for Applicant Tracking System visibility, with opinionated formatting (one-page or two-page, ATS-friendly, no fluff, concise and professional)
 2. **Interview Preparation Guide**: STAR+ method questions based on user's background
 3. **Technical Domain Questions**: 5-7 scenario-based questions for technical interviews
 4. **Gap Analysis**: Skills gaps and actionable recommendations
@@ -256,6 +257,38 @@ Client Form → API Route → AI Service Layer
 - **Week 3**: Polish (PDF export, error handling, testing, documentation)
 
 **[Status: PLANNED - Development starting Q2 2026]**
+
+---
+
+### 2.7 QA Application Pack (Paid, One-Off)
+
+**Purpose:** Enable users to purchase a one-off, job-specific “QA Application Pack” for £4.99–£7.99, delivering a full rewritten CV, tailored cover letter, and interview/interview prep for a specific CV+JD pair.
+
+**User Flow:**
+- User runs Free QA CV Quick Check
+- Upsell panel: “Go deeper for this job: full rewritten QA CV, tailored cover letter, and interview questions → £4.99”
+- Stripe Checkout (one-off payment)
+- On success: Generate and display full pack (rewritten CV, before/after bullets, tailored cover letter, interview pack)
+- Allow copy/download/save to dashboard
+
+**Pack Contents:**
+1. Complete rewritten CV (JD-aligned, new summary, skills, experience, projects, education/certs)
+2. 1–2 before/after bullet rewrites (showing improvement)
+3. Tailored cover letter (company/role-specific, JD keyword-rich, clear structure, option to regenerate with different tone)
+4. Mock interview pack (4–6 STAR behavioral, 4–8 technical/scenario questions, all JD-specific)
+5. Download & save (CV and cover letter as text, DOCX/PDF export)
+
+**Constraints:**
+- 1 Application Pack = 1 CV + 1 JD
+- Users can buy multiple packs for multiple applications
+
+**Technical Requirements:**
+- Stripe one-off payment integration
+- New API endpoints: purchase pack, generate pack, download pack
+- Dashboard integration for purchased packs
+- Secure storage and privacy for pack content
+
+**[Status: PLANNED – Implementation starting Q1 2026]**
 
 ---
 
@@ -412,11 +445,29 @@ POST /api/cv-review/generate → Generate CV review (PLANNED)
 - ✅ WCAG 2.1 AA accessibility
 
 **Privacy:**
-- No user tracking (no Google Analytics)
-- No third-party cookies
-- Minimal data collection
-- Clear privacy policy
-- Data retention policy defined
+
+### 4.6 Application Pack Database & API
+
+**Database Model:**
+```prisma
+model ApplicationPack {
+   id                String   @id @default(cuid())
+   userId            String?  // Null for guest
+   cvText            String   @db.Text
+   jobDescription    String   @db.Text
+   packContent       Json     // All generated content (CV, cover letter, Qs)
+   stripePaymentId   String   // Stripe one-off payment
+   status            String   // pending | generating | ready | failed
+   createdAt         DateTime @default(now())
+   updatedAt         DateTime @updatedAt
+}
+```
+
+**API Endpoints:**
+- `POST /api/application-pack/purchase` (initiate Stripe checkout)
+- `POST /api/application-pack/generate` (trigger pack generation after payment)
+- `GET /api/application-pack/:id` (fetch pack content)
+- `GET /api/user/application-packs` (list user’s packs)
 
 ---
 
@@ -507,49 +558,21 @@ POST /api/cv-review/generate → Generate CV review (PLANNED)
 ## 7. Roadmap & Phases
 
 ### Phase 1: Foundation (Weeks 1-4) ✅ COMPLETE
-- Homepage with hero CTA
-- About page with mission statement
-- 12-week curriculum display
-- Blog system with 11+ articles
-- Basic SEO optimization
 
 **Status:** All features implemented and tested
 
 ### Phase 2: Career Tools (Weeks 5-7) ⏳ IN PROGRESS
-- CV Review & Interview Preparation Tool
-- AI-powered resume analysis
-- Interview question generation
-- Multi-AI fallback (Gemini + HuggingFace)
-- PDF export functionality
 
 **Timeline:** Start Q2 2026
 
 ### Phase 3: User Engagement (Weeks 8-12) 📋 PLANNED
-- User authentication & accounts
-- Course progress tracking
-- Personalized learning recommendations
-- Discussion forum / community
-- User certificates & badges
 - Email newsletter
 
-**Timeline:** Q2-Q3 2026
-
-### Phase 4: Monetization & Expansion (Q3-Q4 2026) 📋 PLANNED
-- Premium course content
-- Paid mentorship program
-- Corporate training packages
 - Live workshops
 - Marketplace for QA tools/resources
 - Affiliate program
 
----
-
-## 8. Success Criteria
-
-### MVP Success (Current Phase)
-- ✅ Type checks pass (zero TypeScript errors)
 - ✅ All E2E tests pass
-- ✅ Lighthouse score >90 all categories
 - ✅ Mobile responsive on all breakpoints
 - ✅ SEO meta tags optimized
 - ✅ Accessibility audit passes (axe)
@@ -563,6 +586,15 @@ POST /api/cv-review/generate → Generate CV review (PLANNED)
 - GDPR compliance validated
 - E2E tests for critical paths
 - 85%+ code coverage
+
+### Application Pack Success (Paid Feature)
+- Stripe payment flow works (one-off, per pack)
+- Pack is generated and delivered after payment
+- User can download/copy/save all content
+- Dashboard shows purchased packs
+- 95%+ pack generation success rate
+- <5% refund/complaint rate
+- Conversion rate from free check to paid pack >5%
 
 ### Long-Term Success (2026)
 - **Monthly Active Users (MAU):** 10,000+

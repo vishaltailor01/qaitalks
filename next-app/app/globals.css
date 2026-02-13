@@ -1,4 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Indie+Flower&display=swap');
+/* Progress bar width utilities (width-0 to width-100) */
+.width-0 { width: 0%; }
+.width-1 { width: 1%; }
+.width-2 { width: 2%; }
+.width-3 { width: 3%; }
+.width-4 { width: 4%; }
+.width-5 { width: 5%; }
+.width-6 { width: 6%; }
+.width-7 { width: 7%; }
+.width-8 { width: 8%; }
+.width-9 { width: 9%; }
+.width-10 { width: 10%; }
+.width-15 { width: 15%; }
+.width-20 { width: 20%; }
+.width-25 { width: 25%; }
+.width-30 { width: 30%; }
+.width-35 { width: 35%; }
+.width-40 { width: 40%; }
+.width-45 { width: 45%; }
+.width-50 { width: 50%; }
+.width-55 { width: 55%; }
+.width-60 { width: 60%; }
+.width-65 { width: 65%; }
+.width-70 { width: 70%; }
+.width-75 { width: 75%; }
+.width-80 { width: 80%; }
+.width-85 { width: 85%; }
+.width-90 { width: 90%; }
+.width-95 { width: 95%; }
+.width-100 { width: 100%; }
 
 @tailwind base;
 @tailwind components;
@@ -121,4 +151,58 @@ a:hover {
 ::selection {
   background-color: var(--logic-cyan);
   color: white;
+}
+
+/* CV Review Enhancements */
+.prose mark {
+  background-color: rgba(0, 180, 216, 0.15);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
+/* Accordion smooth transitions */
+.accordion-content {
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* Prose styling for CV review content */
+.prose h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--deep-blueprint);
+}
+
+.prose h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-slate);
+}
+
+.prose ul {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.prose li {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.prose p {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--deep-blueprint);
 }

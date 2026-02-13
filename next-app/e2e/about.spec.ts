@@ -6,24 +6,27 @@ test.describe('About Page', () => {
     await expect(page).toHaveTitle(/About/);
   });
 
+
   test('should display mission statement', async ({ page }) => {
     await page.goto('/about');
-    
-    const mission = page.locator('text=/Mission|Purpose|About/i');
+    // Use the unique mission statement paragraph
+    const mission = page.getByText('QAi Talks is on a mission to transform manual testers into elite automation architects. We don\'t just teach code; we teach systems thinking.', { exact: true });
     await expect(mission).toBeVisible();
   });
 
+
   test('should display philosophy section', async ({ page }) => {
     await page.goto('/about');
-    
-    const philosophy = page.locator('text=/Philosophy|Approach|Values/i');
+    // Use the unique heading for Philosophy
+    const philosophy = page.getByRole('heading', { name: /The Philosophy/i });
     await expect(philosophy).toBeVisible();
   });
 
+
   test('should display team/mentors section', async ({ page }) => {
     await page.goto('/about');
-    
-    const teamSection = page.locator('text=/Team|Founders|Mentors/i');
+    // Use a more specific selector for team/mentors section (update this if you have a unique heading or text)
+    const teamSection = page.getByRole('heading', { name: /Mentors|Team|Founders/i });
     await expect(teamSection).toBeVisible();
   });
 

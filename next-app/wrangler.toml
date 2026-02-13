@@ -6,6 +6,24 @@ pages_build_output_dir = ".open-next"
 # Required compatibility flags for Next.js
 compatibility_flags = ["nodejs_compat", "streams_enable_constructors"]
 
+# KV Namespaces for Rate Limiting and Caching
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder_rate_limit_id"  # Replace with: wrangler kv:namespace create RATE_LIMIT
+
+[[kv_namespaces]]
+binding = "API_CACHE"
+id = "placeholder_api_cache_id"  # Replace with: wrangler kv:namespace create API_CACHE
+
+# Preview Environment KV Namespaces
+[[env.preview.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder_rate_limit_preview_id"  # Replace with: wrangler kv:namespace create RATE_LIMIT --preview
+
+[[env.preview.kv_namespaces]]
+binding = "API_CACHE"
+id = "placeholder_api_cache_preview_id"  # Replace with: wrangler kv:namespace create API_CACHE --preview
+
 # D1 Database - Production
 [[d1_databases]]
 binding = "DB"

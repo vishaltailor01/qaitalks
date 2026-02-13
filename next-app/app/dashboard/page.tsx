@@ -4,7 +4,7 @@ export default async function Dashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Page Header */}
-      <section className="bg-deep-blueprint text-white py-12 mt-20">
+      <section className="bg-deep-blueprint text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-bold mb-2">Welcome to Your Dashboard!</h1>
           <p className="text-blue-100">Track your learning progress and access resources</p>

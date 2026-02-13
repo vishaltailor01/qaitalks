@@ -7,6 +7,7 @@ import { notFound } from "next/navigation"
 import { getPrisma } from "@/lib/db"
 import { formatDate } from "@/lib/utils"
 import DOMPurify from "isomorphic-dompurify"
+import BlogContent from '@/components/BlogContent';
 
 // Calculate reading time
 function calculateReadingTime(content: string): number {
@@ -100,6 +101,7 @@ export default async function BlogPostPage({
   const readingTime = calculateReadingTime(post.content)
   const headings = extractHeadings(post.content)
 
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       {/* Breadcrumb */}
@@ -177,8 +179,9 @@ export default async function BlogPostPage({
                 prose-blockquote:border-l-4 prose-blockquote:border-logic-cyan prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-slate-600 prose-blockquote:bg-cyan-50/30 prose-blockquote:py-2 prose-blockquote:rounded-r-lg
                 prose-strong:text-deep-blueprint prose-strong:font-bold
                 prose-img:rounded-lg prose-img:shadow-lg prose-img:border-2 prose-img:border-slate-200"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
-            />
+            >
+              <BlogContent html={DOMPurify.sanitize(post.content)} />
+            </div>
 
             {/* Share & Navigation Section */}
             <div className="mt-16 pt-12 border-t-2 border-slate-200">

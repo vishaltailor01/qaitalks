@@ -6,6 +6,8 @@ interface CVReviewResult {
   interviewGuide: string;
   domainQuestions: string;
   gapAnalysis: string;
+  optimizedCV: string;
+  coverLetter: string;
   provider: 'gemini' | 'huggingface';
   generationTimeMs: number;
 }
@@ -54,8 +56,7 @@ export function saveToHistory(
 
     // Save to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmedHistory));
-  } catch (error) {
-    console.error('Failed to save to history:', error);
+  } catch {
     // Silently fail - not critical functionality
   }
 }
@@ -82,8 +83,8 @@ export function getHistory(): CVReviewHistoryItem[] {
     }
 
     return history;
-  } catch (error) {
-    console.error('Failed to load history:', error);
+  } catch {
+    // Silently fail - localStorage might be unavailable
     return [];
   }
 }
@@ -108,8 +109,8 @@ export function deleteHistoryItem(id: string): void {
     const history = getHistory();
     const filtered = history.filter(item => item.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  } catch (error) {
-    console.error('Failed to delete history item:', error);
+  } catch {
+    // Silently fail
   }
 }
 
@@ -123,8 +124,8 @@ export function clearHistory(): void {
 
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('Failed to clear history:', error);
+  } catch {
+    // Silently fail
   }
 }
 
@@ -188,4 +189,87 @@ export function getStorageInfo(): {
     itemCount: history.length,
     canSaveMore: history.length < MAX_HISTORY_ITEMS,
   };
+}
+
+// ============================================
+// DRAFT AUTO-SAVE FUNCTIONALITY (Phase 1)
+// ============================================
+
+const DRAFT_STORAGE_KEY = 'qaitalks_cv_review_draft';
+
+export interface CVReviewDraft {
+  resume: string;
+  jobDescription: string;
+  timestamp: number;
+}
+
+/**
+ * Save form input as draft to localStorage
+ */
+export function saveDraft(resume: string, jobDescription: string): void {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return;
+  }
+
+  try {
+    const draft: CVReviewDraft = {
+      resume,
+      jobDescription,
+      timestamp: Date.now(),
+    };
+
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch (error) {
+    console.error('Failed to save draft:', error);
+  }
+}
+
+/**
+ * Load draft from localStorage
+ */
+export function loadDraft(): CVReviewDraft | null {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return null;
+  }
+
+  try {
+    const stored = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
+
+    const draft = JSON.parse(stored) as CVReviewDraft;
+    
+    // Validate structure
+    if (!draft.resume || !draft.jobDescription || !draft.timestamp) {
+      return null;
+    }
+
+    return draft;
+  } catch (error) {
+    console.error('Failed to load draft:', error);
+    return null;
+  }
+}
+
+/**
+ * Clear draft from localStorage
+ */
+export function clearDraft(): void {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch (error) {
+    console.error('Failed to clear draft:', error);
+  }
+}
+
+/**
+ * Check if a draft exists
+ */
+export function hasDraft(): boolean {
+  return loadDraft() !== null;
 }

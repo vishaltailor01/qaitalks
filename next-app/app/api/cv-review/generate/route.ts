@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+import { z } from 'zod';
 import { generateCVReview } from '../../../../lib/ai';
 import { checkRateLimit, getClientIp } from '../../../../lib/rateLimit';
 import { sanitizeCVReviewInput, sanitizeOutput } from '../../../../lib/sanitize';
 import { logger, metricsStore, generateRequestId } from '../../../../lib/monitoring';
+import { hashInput } from '../../../../lib/resultCache';
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -19,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // 1. Rate limiting check
-    const rateLimitResult = checkRateLimit(clientIp);
+    const rateLimitResult = await checkRateLimit(clientIp);
 
     if (!rateLimitResult.allowed) {
       const responseTimeMs = Date.now() - startTime;
@@ -65,23 +68,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Parse and validate input
+
+    // 2. Parse and validate input with Zod
     const body = await req.json();
-    
-    // 3. Sanitize input (prevents prompt injection and XSS)
-    const sanitizationResult = sanitizeCVReviewInput({
-      resume: body.resume,
-      jobDescription: body.jobDescription,
+    const BodySchema = z.object({
+      resume: z.string().min(100, 'Resume must be at least 100 characters'),
+      jobDescription: z.string().min(30, 'Job description must be at least 30 characters'),
+      bypassCache: z.boolean().optional(),
     });
-
-    if (sanitizationResult.errors) {
+    const parseResult = BodySchema.safeParse(body);
+    if (!parseResult.success) {
       const responseTimeMs = Date.now() - startTime;
-      
-      logger.warn('security', 'Input validation failed', {
+      const errors = parseResult.error.issues.map((e: { message: string }) => e.message);
+      logger.warn('security', 'Input validation failed (zod)', {
         requestId,
-        errors: sanitizationResult.errors,
+        errors,
       });
-
       metricsStore.addAPIMetrics({
         requestId,
         endpoint: '/api/cv-review/generate',
@@ -93,9 +95,40 @@ export async function POST(req: NextRequest) {
         userAgent,
         error: 'INVALID_INPUT',
       });
-
       return NextResponse.json(
-        { 
+        {
+          error: errors.join('. '),
+          code: 'INVALID_INPUT',
+          retryable: false,
+        },
+        { status: 400, headers: { 'X-Request-Id': requestId } }
+      );
+    }
+
+    // 3. Sanitize input (prevents prompt injection and XSS)
+    const sanitizationResult = sanitizeCVReviewInput({
+      resume: parseResult.data.resume,
+      jobDescription: parseResult.data.jobDescription,
+    });
+    if (sanitizationResult.errors) {
+      const responseTimeMs = Date.now() - startTime;
+      logger.warn('security', 'Input validation failed (sanitize)', {
+        requestId,
+        errors: sanitizationResult.errors,
+      });
+      metricsStore.addAPIMetrics({
+        requestId,
+        endpoint: '/api/cv-review/generate',
+        method: 'POST',
+        statusCode: 400,
+        responseTimeMs,
+        success: false,
+        ip: clientIp,
+        userAgent,
+        error: 'INVALID_INPUT',
+      });
+      return NextResponse.json(
+        {
           error: sanitizationResult.errors.join('. '),
           code: 'INVALID_INPUT',
           retryable: false,
@@ -104,11 +137,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Generate CV review with AI
+    // 4. Check for bypass cache flag (user clicked "Regenerate")
+    const bypassCache = body.bypassCache === true;
+    
+    // 5. Generate content hash for caching (Phase 2)
+    const contentHash = hashInput(
+      sanitizationResult.sanitized!.resume,
+      sanitizationResult.sanitized!.jobDescription
+    );
+
+    // 6. Generate CV review with AI
     logger.debug('api', 'Starting AI generation', {
       requestId,
       resumeLength: sanitizationResult.sanitized!.resume.length,
       jobDescLength: sanitizationResult.sanitized!.jobDescription.length,
+      contentHash,
+      bypassCache,
     });
 
     const aiStartTime = Date.now();
@@ -159,6 +203,11 @@ export async function POST(req: NextRequest) {
       interviewGuide: sanitizeOutput(result.interviewGuide),
       domainQuestions: sanitizeOutput(result.domainQuestions),
       gapAnalysis: sanitizeOutput(result.gapAnalysis),
+      optimizedCV: sanitizeOutput(result.optimizedCV),
+      coverLetter: sanitizeOutput(result.coverLetter),
+      // Add cache metadata (Phase 2)
+      cached: false,
+      contentHash,
     };
 
     const responseTimeMs = Date.now() - startTime;
@@ -190,6 +239,7 @@ export async function POST(req: NextRequest) {
         'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
         'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
         'X-Request-Id': requestId,
+        'X-Cache-Status': 'MISS', // Phase 2: Cache miss, generated fresh
       },
     });
   } catch (error) {

@@ -1,12 +1,14 @@
 // Rate limiting utilities for CV Review Tool
-// Uses in-memory storage (upgrade to Cloudflare KV for production)
+// Uses Cloudflare KV for production, in-memory for development
+
+import type { KVNamespace } from '@/types/cloudflare';
 
 interface RateLimitEntry {
   count: number;
   resetTime: number;
 }
 
-// In-memory store (cleared on server restart)
+// In-memory store for local development (cleared on server restart)
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Configuration
@@ -18,16 +20,101 @@ const RATE_LIMIT_CONFIG = {
 
 /**
  * Check if IP address has exceeded rate limit
+ * Supports both Cloudflare KV (production) and in-memory (development)
  * @param ip - Client IP address
+ * @param kvNamespace - Optional Cloudflare KV namespace binding
  * @returns Object with allowed status and remaining requests
  */
-export function checkRateLimit(ip: string): {
+export async function checkRateLimit(
+  ip: string,
+  kvNamespace?: KVNamespace
+): Promise<{
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  message?: string;
+}> {
+  const now = Date.now();
+  
+  // Use KV if available (production), otherwise in-memory (development)
+  if (kvNamespace) {
+    return await checkRateLimitKV(ip, kvNamespace, now);
+  } else {
+    return checkRateLimitMemory(ip, now);
+  }
+}
+
+/**
+ * Cloudflare KV-based rate limiting (production)
+ */
+async function checkRateLimitKV(
+  ip: string,
+  kvNamespace: KVNamespace,
+  now: number
+): Promise<{
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+  message?: string;
+}> {
+  const key = `ratelimit:${ip}`;
+  const entryJson = await kvNamespace.get(key);
+  const entry: RateLimitEntry | null = entryJson ? JSON.parse(entryJson) : null;
+
+  // First request or expired window
+  if (!entry || now >= entry.resetTime) {
+    const resetTime = now + RATE_LIMIT_CONFIG.windowMs;
+    const newEntry: RateLimitEntry = { count: 1, resetTime };
+    
+    // Store in KV with TTL (expires after window + 1 hour buffer)
+    const ttlSeconds = Math.ceil((resetTime - now) / 1000) + 3600;
+    await kvNamespace.put(key, JSON.stringify(newEntry), {
+      expirationTtl: ttlSeconds,
+    });
+    
+    return {
+      allowed: true,
+      remaining: RATE_LIMIT_CONFIG.maxRequests - 1,
+      resetTime,
+    };
+  }
+
+  // Within window, check if limit exceeded
+  if (entry.count >= RATE_LIMIT_CONFIG.maxRequests) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: entry.resetTime,
+      message: RATE_LIMIT_CONFIG.message,
+    };
+  }
+
+  // Increment count
+  entry.count++;
+  const ttlSeconds = Math.ceil((entry.resetTime - now) / 1000) + 3600;
+  await kvNamespace.put(key, JSON.stringify(entry), {
+    expirationTtl: ttlSeconds,
+  });
+
+  return {
+    allowed: true,
+    remaining: RATE_LIMIT_CONFIG.maxRequests - entry.count,
+    resetTime: entry.resetTime,
+  };
+}
+
+/**
+ * In-memory rate limiting (development)
+ */
+function checkRateLimitMemory(
+  ip: string,
+  now: number
+): {
   allowed: boolean;
   remaining: number;
   resetTime: number;
   message?: string;
 } {
-  const now = Date.now();
   const entry = rateLimitStore.get(ip);
 
   // First request or expired window
@@ -87,7 +174,7 @@ export function getClientIp(request: Request): string {
 }
 
 /**
- * Clean up expired rate limit entries
+ * Clean up expired rate limit entries (in-memory only)
  * Call this periodically to prevent memory leaks
  */
 export function cleanupRateLimits(): void {
@@ -99,7 +186,7 @@ export function cleanupRateLimits(): void {
   }
 }
 
-// Run cleanup every hour
+// Run cleanup every hour (in-memory only)
 if (typeof setInterval !== 'undefined') {
   setInterval(cleanupRateLimits, 60 * 60 * 1000);
 }
