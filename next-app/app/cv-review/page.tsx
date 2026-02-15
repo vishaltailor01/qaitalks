@@ -1,25 +1,27 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import Link from 'next/link'
+import DOMPurify from 'isomorphic-dompurify'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import UserButton from '@/components/auth/UserButton'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { exportToPDF } from '@/lib/pdfExport'
 import { exportOptimizedCV, exportCoverLetter } from '@/lib/cvTemplateExport'
-import { 
-  saveToHistory, 
-  getHistory, 
-  deleteHistoryItem, 
-  formatHistoryDate, 
-  isLocalStorageAvailable, 
+import {
+  saveToHistory,
+  getHistory,
+  deleteHistoryItem,
+  formatHistoryDate,
+  isLocalStorageAvailable,
   saveDraft,
   loadDraft,
   clearDraft,
-  type CVReviewHistoryItem 
+  type CVReviewHistoryItem
 } from '@/lib/cvHistory'
 import {
-  getCachedResult,
   cacheResult,
-  formatCacheAge,
   isCacheAvailable,
 } from '@/lib/resultCache'
 import { FileUpload, CVReviewVersionPanel } from '@/components/sections'
@@ -129,6 +131,7 @@ interface CVReviewResult {
   gapAnalysis: string
   optimizedCV: string
   coverLetter: string
+  sixSecondTest: string
   matchedKeywords?: string[]
   provider: 'gemini' | 'huggingface'
   generationTimeMs: number
@@ -137,6 +140,33 @@ interface CVReviewResult {
   contentHash?: string
   cachedAt?: number
 }
+
+// Utility to nuclear clean section content
+const nuclearCleanSection = (text: string): string => {
+  if (!text) return '';
+  return text
+    .split('\n')
+    .filter(line => {
+      const upper = line.toUpperCase();
+      return !(
+        upper.includes('STRATEGIC ROLE ANALYSIS') ||
+        upper.includes('BEHAVIOURAL') ||
+        upper.includes('TECHNICAL QUESTIONS') ||
+        upper.includes('SKILLS GAP') ||
+        upper.includes('REWRITTEN UK CV') ||
+        upper.includes('UK COVER LETTER') ||
+        upper.includes('SIX-SECOND') ||
+        upper.includes('CV REWRITE:') ||
+        upper.includes('ACTIONABLE GAPS:') ||
+        upper.includes('COVER LETTER:') ||
+        (upper.includes('SECTION') && /\d+/.test(upper))
+      );
+    })
+    .join('\n')
+    .replace(/^[\s*=*\n]*/, '')
+    .replace(/[\s*=*\n]*$/, '')
+    .trim();
+};
 
 export default function CVReviewPage() {
   // For Back to Top
@@ -169,7 +199,7 @@ export default function CVReviewPage() {
     setProgress,
     setProgressMessage,
   } = useCVStore();
-  
+
   const {
     showHistory,
     showComparison,
@@ -184,7 +214,7 @@ export default function CVReviewPage() {
     setActiveTooltip: setShowTooltip,
     toggleSection,
   } = useUIStore();
-  
+
   // Local state (not moved to stores yet)
   const [history, setHistory] = useState<CVReviewHistoryItem[]>([])
   const [optimizationMode, setOptimizationMode] = useState<'minimal' | 'balanced' | 'aggressive'>('minimal')
@@ -204,7 +234,7 @@ export default function CVReviewPage() {
   useEffect(() => {
     if (isLocalStorageAvailable()) {
       setHistory(getHistory());
-      
+
       // Check for existing draft
       const draft = loadDraft();
       if (draft && !resume && !jobDescription) {
@@ -212,19 +242,19 @@ export default function CVReviewPage() {
       }
     }
   }, [resume, jobDescription]);
-  
+
   // Load QA roles on mount
   useEffect(() => {
     const roles = getAllRoleTitles();
     setQARoleTitles(roles);
-    
+
     // Set initial QA role
     const initialRole = getQARole('qa_engineer');
     if (initialRole) {
       setSelectedQARole(initialRole);
     }
   }, []);
-  
+
   // Update selected QA role when targetRole changes
   useEffect(() => {
     if (targetRole) {
@@ -280,11 +310,11 @@ export default function CVReviewPage() {
   const getCharCountFeedback = (text: string, minChars: number, type: 'resume' | 'job') => {
     const chars = text.length;
     const words = getWordCount(text);
-    
+
     if (chars === 0) {
       return { color: 'text-slate-500', message: `0 characters, 0 words`, icon: '' };
     }
-    
+
     if (type === 'resume') {
       if (chars < minChars) {
         return { color: 'text-red-600', message: `${chars} chars (${words} words) - Need ${minChars - chars} more`, icon: '❌' };
@@ -309,11 +339,11 @@ export default function CVReviewPage() {
   // Parse questions from markdown text (Phase 3.3)
   const parseQuestionsFromMarkdown = (text: string): string[] => {
     const questions: string[] = [];
-    
+
     // Match numbered questions like "1. What is..." or "**1.** What is..."
     const numberedRegex = /(?:\*\*)?(\d+)\.(?:\*\*)?\s*(.+?)(?=(?:\*\*)?(?:\d+)\.|\n\n|$)/g;
     const matches = Array.from(text.matchAll(numberedRegex));
-    
+
     if (matches.length > 0) {
       matches.forEach(match => {
         const question = match[2].trim();
@@ -331,22 +361,22 @@ export default function CVReviewPage() {
         }
       }
     }
-    
+
     return questions;
   };
 
   // Start interview practice (Phase 3.3)
-  const startInterviewPractice = (type: 'behavioral' | 'technical') => {
+  const _startInterviewPractice = (type: 'behavioral' | 'technical') => {
     if (!result) return;
-    
+
     const text = type === 'behavioral' ? result.interviewGuide : result.domainQuestions;
     const questions = parseQuestionsFromMarkdown(text);
-    
+
     if (questions.length === 0) {
       alert('No questions found in this section. Please generate CV review results first.');
       return;
     }
-    
+
     setPracticeQuestions(questions);
     setPracticeType(type);
     setShowInterviewPractice(true);
@@ -422,7 +452,7 @@ export default function CVReviewPage() {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      
+
       // Track sections as they arrive
       const sectionMessages = [
         'Analyzing your CV against job requirements...',
@@ -456,9 +486,9 @@ export default function CVReviewPage() {
           switch (eventType) {
             case 'section':
               receivedSections++;
-              setProgress(Math.round((receivedSections / 6) * 95));
+              setProgress(Math.round((receivedSections / 7) * 95));
               setProgressMessage(
-                `✅ ${data.sectionName} (${receivedSections}/6)`
+                `✅ ${data.sectionName} (${receivedSections}/7)`
               );
               logger.info('streaming', `Section ${data.sectionNumber} received`, {
                 sectionName: data.sectionName,
@@ -468,7 +498,7 @@ export default function CVReviewPage() {
 
             case 'progress':
               setProgress(data.progress || 0);
-              if (receivedSections > 0 && receivedSections < 6) {
+              if (receivedSections > 0 && receivedSections < 7) {
                 setProgressMessage(
                   `Processing... ${sectionMessages[receivedSections] || 'Generating content...'}`
                 );
@@ -522,33 +552,28 @@ export default function CVReviewPage() {
 
       // Set final result
       if (finalResult) {
-        console.log('[DEBUG] Setting final result to state:', {
-          hasAtsResume: !!finalResult.atsResume,
-          hasInterviewGuide: !!finalResult.interviewGuide,
-          hasDomainQuestions: !!finalResult.domainQuestions,
-          hasGapAnalysis: !!finalResult.gapAnalysis,
-          hasOptimizedCV: !!finalResult.optimizedCV,
-          hasCoverLetter: !!finalResult.coverLetter,
-        });
-        setResult(finalResult);
-        
+        const cleaned: CVReviewResult = {
+          ...finalResult,
+          atsResume: nuclearCleanSection(finalResult.atsResume),
+          interviewGuide: nuclearCleanSection(finalResult.interviewGuide),
+          domainQuestions: nuclearCleanSection(finalResult.domainQuestions),
+          gapAnalysis: nuclearCleanSection(finalResult.gapAnalysis),
+          optimizedCV: nuclearCleanSection(finalResult.optimizedCV),
+          coverLetter: nuclearCleanSection(finalResult.coverLetter),
+          sixSecondTest: nuclearCleanSection(finalResult.sixSecondTest),
+        };
+
+        setResult(cleaned);
+
         // Generate QA Skills Report
         if (selectedQARole) {
           const report = generateQASkillsReport(resume, selectedQARole);
           setQASkillsReport(report);
         }
 
-        // Cache the result (Phase 2) - DISABLED FOR DEBUGGING
-        console.log('[DEBUG] Cache save skipped during debugging');
-        /* CACHE DISABLED FOR DEBUGGING
-        if (isCacheAvailable()) {
-          cacheResult(resume, jobDescription, finalResult);
-        }
-        */
-
         // Save to history and clear draft (Phase 1)
         if (isLocalStorageAvailable()) {
-          saveToHistory(finalResult, resume, jobDescription);
+          saveToHistory(cleaned, resume, jobDescription);
           setHistory(getHistory());
           clearDraft();
           setLastDraftSave(null);
@@ -574,7 +599,7 @@ export default function CVReviewPage() {
   const handleSubmit = handleSubmitWithStreaming;
 
   // Regenerate (bypass cache) - Phase 2 with streaming
-  const handleRegenerate = async () => {
+  const _handleRegenerate = async () => {
     setIsLoading(true);
     setError(null);
     setProgress(0);
@@ -609,7 +634,7 @@ export default function CVReviewPage() {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      
+
       const sectionMessages = [
         'Analyzing your CV against job requirements...',
         'Preparing behavioral interview questions...',
@@ -642,15 +667,15 @@ export default function CVReviewPage() {
           switch (eventType) {
             case 'section':
               receivedSections++;
-              setProgress(Math.round((receivedSections / 6) * 95));
+              setProgress(Math.round((receivedSections / 7) * 95));
               setProgressMessage(
-                `✅ ${data.sectionName} (${receivedSections}/6)`
+                `✅ ${data.sectionName} (${receivedSections}/7)`
               );
               break;
 
             case 'progress':
               setProgress(data.progress || 0);
-              if (receivedSections > 0 && receivedSections < 6) {
+              if (receivedSections > 0 && receivedSections < 7) {
                 setProgressMessage(
                   `Processing... ${sectionMessages[receivedSections] || 'Generating content...'}`
                 );
@@ -695,7 +720,7 @@ export default function CVReviewPage() {
       // Set final result
       if (finalResult) {
         setResult(finalResult);
-        
+
         // Generate QA Skills Report
         if (selectedQARole) {
           const report = generateQASkillsReport(resume, selectedQARole);
@@ -729,7 +754,7 @@ export default function CVReviewPage() {
   };
 
   const isFormValid = resume.length >= 100 && jobDescription.length >= 30
-  
+
   // Get feedback for display
   const resumeFeedback = getCharCountFeedback(resume, 100, 'resume');
   const jobFeedback = getCharCountFeedback(jobDescription, 30, 'job');
@@ -740,18 +765,18 @@ export default function CVReviewPage() {
       <section className="pt-32 pb-12 px-6 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-logic-cyan/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-purple-accent/10 rounded-full blur-3xl"></div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="inline-block mb-6 px-3 py-1 bg-white border-2 border-logic-cyan rounded-full font-mono text-xs font-semibold text-logic-cyan-bright tracking-widest">
             🤖 AI-POWERED TOOL
           </div>
-          
+
           <h1 className="text-5xl md:text-6xl font-black text-deep-blueprint mb-6 leading-tight">
             CV Review & Interview Prep
           </h1>
-          
+
           <p className="text-lg md:text-xl text-text-slate mb-8 max-w-3xl opacity-90 leading-relaxed">
-            UK-focused CV review with 20 interview questions (10 behavioural STAR + 10 domain-specific technical), 
+            UK-focused CV review with 20 interview questions (10 behavioural STAR + 10 domain-specific technical),
             complete UK CV rewrite, ATS optimisation, and Six-Second Recruiter Test. <span className="font-semibold text-deep-blueprint">100% private, no data stored.</span>
           </p>
 
@@ -1104,7 +1129,7 @@ export default function CVReviewPage() {
                       })}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label htmlFor="industry" className="block text-sm font-bold text-deep-blueprint mb-2 flex items-center gap-2">
                       🏢 Industry
@@ -1208,10 +1233,10 @@ export default function CVReviewPage() {
                           <div className="absolute z-10 -top-2 left-8 w-72 bg-slate-800 text-white text-xs rounded-lg p-3 shadow-xl">
                             <strong className="block mb-2">Examples:</strong>
                             <ul className="space-y-1">
-                              <li>• "Emphasize leadership experience"</li>
-                              <li>• "Keep technical jargon for engineering role"</li>
-                              <li>• "Highlight remote work achievements"</li>
-                              <li>• "Focus on quantifiable metrics"</li>
+                              <li>• &quot;Emphasize leadership experience&quot;</li>
+                              <li>• &quot;Keep technical jargon for engineering role&quot;</li>
+                              <li>• &quot;Highlight remote work achievements&quot;</li>
+                              <li>• &quot;Focus on quantifiable metrics&quot;</li>
                             </ul>
                           </div>
                         )}
@@ -1233,173 +1258,172 @@ export default function CVReviewPage() {
                   </div>
                 </div>
 
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                {/* Resume Input */}
-                <div>
-                  <label htmlFor="resume" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
-                    Your Resume / CV
-                    <span className="text-warning-amber ml-2">*</span>
-                    {/* Tooltip (Phase 1) */}
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  {/* Resume Input */}
+                  <div>
+                    <label htmlFor="resume" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
+                      Your Resume / CV
+                      <span className="text-warning-amber ml-2">*</span>
+                      {/* Tooltip (Phase 1) */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onMouseEnter={() => setShowTooltip('resume')}
+                          onMouseLeave={() => setShowTooltip(null)}
+                          className="w-5 h-5 rounded-full bg-logic-cyan/20 text-logic-cyan text-xs font-bold flex items-center justify-center hover:bg-logic-cyan/30 transition-colors"
+                          aria-label="Help"
+                        >
+                          ?
+                        </button>
+                        {showTooltip === 'resume' && (
+                          <div className="absolute left-0 top-8 z-50 w-72 bg-slate-900 text-white text-xs p-3 rounded-lg shadow-xl">
+                            <p className="mb-2"><strong>Tip:</strong> Include your full work history, skills, and achievements.</p>
+                            <p>Recommended: 500-2000 words for best AI results. More detail = more personalized feedback.</p>
+                          </div>
+                        )}
+                      </div>
+                    </label>
+
+                    {/* File Upload Component (Phase 2) */}
+                    <div className="mb-4">
+                      <FileUpload
+                        onTextExtracted={handleFileUpload}
+                        disabled={isLoading}
+                      />
+                    </div>
+
                     <div className="relative">
-                      <button
-                        type="button"
-                        onMouseEnter={() => setShowTooltip('resume')}
-                        onMouseLeave={() => setShowTooltip(null)}
-                        className="w-5 h-5 rounded-full bg-logic-cyan/20 text-logic-cyan text-xs font-bold flex items-center justify-center hover:bg-logic-cyan/30 transition-colors"
-                        aria-label="Help"
-                      >
-                        ?
-                      </button>
-                      {showTooltip === 'resume' && (
-                        <div className="absolute left-0 top-8 z-50 w-72 bg-slate-900 text-white text-xs p-3 rounded-lg shadow-xl">
-                          <p className="mb-2"><strong>Tip:</strong> Include your full work history, skills, and achievements.</p>
-                          <p>Recommended: 500-2000 words for best AI results. More detail = more personalized feedback.</p>
-                        </div>
-                      )}
+                      <div className="absolute -top-3 left-4 bg-white px-2 text-xs font-semibold text-slate-500">
+                        Or paste text manually
+                      </div>
+                      <textarea
+                        id="resume"
+                        value={resume}
+                        onChange={(e) => setResume(e.target.value)}
+                        placeholder="Paste your resume text here (minimum 100 characters)..."
+                        className="w-full h-96 px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-logic-cyan transition-colors resize-none font-mono text-sm"
+                        required
+                        minLength={100}
+                      />
                     </div>
-                  </label>
-                  
-                  {/* File Upload Component (Phase 2) */}
-                  <div className="mb-4">
-                    <FileUpload 
-                      onTextExtracted={handleFileUpload}
-                      disabled={isLoading}
-                    />
+                    <div className={`text-xs mt-2 font-semibold ${resumeFeedback.color} flex items-center gap-2`}>
+                      {resumeFeedback.icon && <span>{resumeFeedback.icon}</span>}
+                      <span>{resumeFeedback.message}</span>
+                    </div>
+                    {resume.length >= 100 && resume.length < 500 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        💡 Better results with 500+ words (you have {getWordCount(resume)} words)
+                      </p>
+                    )}
                   </div>
-                  
-                  <div className="relative">
-                    <div className="absolute -top-3 left-4 bg-white px-2 text-xs font-semibold text-slate-500">
-                      Or paste text manually
-                    </div>
+
+                  {/* Job Description Input */}
+                  <div>
+                    <label htmlFor="jobDescription" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
+                      Target Job Description
+                      <span className="text-warning-amber ml-2">*</span>
+                      {/* Tooltip (Phase 1) */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onMouseEnter={() => setShowTooltip('job')}
+                          onMouseLeave={() => setShowTooltip(null)}
+                          className="w-5 h-5 rounded-full bg-logic-cyan/20 text-logic-cyan text-xs font-bold flex items-center justify-center hover:bg-logic-cyan/30 transition-colors"
+                          aria-label="Help"
+                        >
+                          ?
+                        </button>
+                        {showTooltip === 'job' && (
+                          <div className="absolute left-0 top-8 z-50 w-72 bg-slate-900 text-white text-xs p-3 rounded-lg shadow-xl">
+                            <p className="mb-2"><strong>Tip:</strong> Include the full job posting with requirements and responsibilities.</p>
+                            <p>The more details you provide, the better the AI can tailor interview questions and CV optimization.</p>
+                          </div>
+                        )}
+                      </div>
+                    </label>
                     <textarea
-                      id="resume"
-                      value={resume}
-                      onChange={(e) => setResume(e.target.value)}
-                      placeholder="Paste your resume text here (minimum 100 characters)..."
+                      id="jobDescription"
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      placeholder="Paste the job description you're targeting (minimum 30 characters)..."
                       className="w-full h-96 px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-logic-cyan transition-colors resize-none font-mono text-sm"
                       required
-                      minLength={100}
+                      minLength={30}
                     />
-                  </div>
-                  <div className={`text-xs mt-2 font-semibold ${resumeFeedback.color} flex items-center gap-2`}>
-                    {resumeFeedback.icon && <span>{resumeFeedback.icon}</span>}
-                    <span>{resumeFeedback.message}</span>
-                  </div>
-                  {resume.length >= 100 && resume.length < 500 && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      💡 Better results with 500+ words (you have {getWordCount(resume)} words)
-                    </p>
-                  )}
-                </div>
-
-                {/* Job Description Input */}
-                <div>
-                  <label htmlFor="jobDescription" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
-                    Target Job Description
-                    <span className="text-warning-amber ml-2">*</span>
-                    {/* Tooltip (Phase 1) */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onMouseEnter={() => setShowTooltip('job')}
-                        onMouseLeave={() => setShowTooltip(null)}
-                        className="w-5 h-5 rounded-full bg-logic-cyan/20 text-logic-cyan text-xs font-bold flex items-center justify-center hover:bg-logic-cyan/30 transition-colors"
-                        aria-label="Help"
-                      >
-                        ?
-                      </button>
-                      {showTooltip === 'job' && (
-                        <div className="absolute left-0 top-8 z-50 w-72 bg-slate-900 text-white text-xs p-3 rounded-lg shadow-xl">
-                          <p className="mb-2"><strong>Tip:</strong> Include the full job posting with requirements and responsibilities.</p>
-                          <p>The more details you provide, the better the AI can tailor interview questions and CV optimization.</p>
-                        </div>
-                      )}
+                    <div className={`text-xs mt-2 font-semibold ${jobFeedback.color} flex items-center gap-2`}>
+                      {jobFeedback.icon && <span>{jobFeedback.icon}</span>}
+                      <span>{jobFeedback.message}</span>
                     </div>
-                  </label>
-                  <textarea
-                    id="jobDescription"
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Paste the job description you're targeting (minimum 30 characters)..."
-                    className="w-full h-96 px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-logic-cyan transition-colors resize-none font-mono text-sm"
-                    required
-                    minLength={30}
-                  />
-                  <div className={`text-xs mt-2 font-semibold ${jobFeedback.color} flex items-center gap-2`}>
-                    {jobFeedback.icon && <span>{jobFeedback.icon}</span>}
-                    <span>{jobFeedback.message}</span>
+                    {jobDescription.length >= 30 && jobDescription.length < 200 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        💡 Add more job requirements for better tailored results
+                      </p>
+                    )}
                   </div>
-                  {jobDescription.length >= 30 && jobDescription.length < 200 && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      💡 Add more job requirements for better tailored results
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border-2 border-red-500 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <div>
-                      <h3 className="font-bold text-red-900 mb-1">Error</h3>
-                      <p className="text-sm text-red-800">{error}</p>
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border-2 border-red-500 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">⚠️</span>
+                      <div>
+                        <h3 className="font-bold text-red-900 mb-1">Error</h3>
+                        <p className="text-sm text-red-800">{error}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={!isFormValid || isLoading}
-                className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-300 ${
-                  !isFormValid || isLoading
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={!isFormValid || isLoading}
+                  className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-300 ${!isFormValid || isLoading
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                     : 'bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white hover:shadow-2xl hover:shadow-logic-cyan/50 hover:scale-[1.02]'
-                }`}
-              >
-                {isLoading ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-center gap-3">
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      <span>{progressMessage || 'Generating Review...'}</span>
-                    </div>
-                    {/* Progress Bar (Phase 1) */}
-                    {progress > 0 && (
-                      <div className="w-full bg-slate-400/30 rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className="bg-white h-2.5 rounded-full transition-all duration-500 ease-out"
-                          style={{ width: `${Math.max(0, Math.min(100, Math.round(progress)))}%` }}
-                          role="progressbar"
-                          aria-label="CV review generation progress"
-                          aria-valuenow={Number.isFinite(progress) ? Math.round(progress) : 0}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        ></div>
+                    }`}
+                >
+                  {isLoading ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-3">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>{progressMessage || 'Generating Review...'}</span>
                       </div>
-                    )}
-                    {progress > 0 && (
-                      <p className="text-sm opacity-90">{Math.round(progress)}% complete</p>
-                    )}
-                  </div>
-                ) : (
-                  '🚀 Generate AI Review'
-                )}
-              </button>
+                      {/* Progress Bar (Phase 1) */}
+                      {progress > 0 && (
+                        <div className="w-full bg-slate-400/30 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className="bg-white h-2.5 rounded-full transition-all duration-500 ease-out"
+                            style={{ width: `${Math.round(progress || 0)}%` }}
+                            role="progressbar"
+                            aria-label="CV review generation progress"
+                            aria-valuenow={Math.round(progress || 0)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                          ></div>
+                        </div>
+                      )}
+                      {progress > 0 && (
+                        <p className="text-sm opacity-90">{Math.round(progress)}% complete</p>
+                      )}
+                    </div>
+                  ) : (
+                    '🚀 Generate AI Review'
+                  )}
+                </button>
 
-              {/* Privacy Notice */}
-              <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  <strong>Privacy Notice:</strong> Your resume and job description are processed in real-time and never stored on our servers. 
-                  All data is handled client-side and deleted after generation. We comply with GDPR and do not share any information with third parties.
-                </p>
-              </div>
-            </form>
+                {/* Privacy Notice */}
+                <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    <strong>Privacy Notice:</strong> Your resume and job description are processed in real-time and never stored on our servers.
+                    All data is handled client-side and deleted after generation. We comply with GDPR and do not share any information with third parties.
+                  </p>
+                </div>
+              </form>
             </div>
           ) : (
             /* Results Display with Version Panel */
@@ -1409,393 +1433,511 @@ export default function CVReviewPage() {
                 {/* Sticky Section Navigation */}
                 <nav className="hidden md:block sticky top-8 z-30">
                   <ul className="flex gap-3 mb-6">
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('ats-section')?.scrollIntoView({behavior:'smooth'})}>ATS Analysis</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('interview-section')?.scrollIntoView({behavior:'smooth'})}>Behavioural Qs</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('domain-section')?.scrollIntoView({behavior:'smooth'})}>Technical Qs</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('gap-section')?.scrollIntoView({behavior:'smooth'})}>Skills Gap</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cv-section')?.scrollIntoView({behavior:'smooth'})}>Optimized CV</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cover-section')?.scrollIntoView({behavior:'smooth'})}>Cover Letter</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('ats-section')?.scrollIntoView({ behavior: 'smooth' })}>ATS Analysis</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('interview-section')?.scrollIntoView({ behavior: 'smooth' })}>Behavioural Qs</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('domain-section')?.scrollIntoView({ behavior: 'smooth' })}>Technical Qs</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('gap-section')?.scrollIntoView({ behavior: 'smooth' })}>Skills Gap</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cv-section')?.scrollIntoView({ behavior: 'smooth' })}>Optimized CV</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cover-section')?.scrollIntoView({ behavior: 'smooth' })}>Cover Letter</button></li>
+                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('six-second-section')?.scrollIntoView({ behavior: 'smooth' })}>6s Test</button></li>
                   </ul>
                 </nav>
-              {/* Cache Status Banner removed as per request */}
+                {/* Cache Status Banner removed as per request */}
 
-              {/* QA Role Meta & Readiness Score */}
-              {selectedQARole && qaSkillsReport && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg border-2 border-blue-200 p-8">
-                  <div className="grid md:grid-cols-3 gap-6 mb-6">
-                    {/* Role Information */}
-                    <div className="md:col-span-2">
-                      <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-2 mb-4">
-                        <span className="text-3xl">🎯</span>
-                        {selectedQARole.title}
-                      </h2>
-                      <div className="space-y-2 text-sm text-slate-700">
-                        <p><strong>Category:</strong> {selectedQARole.category.charAt(0).toUpperCase() + selectedQARole.category.slice(1)}</p>
-                        <p><strong>Experience Level:</strong> {selectedQARole.yearsExperience.min}-{selectedQARole.yearsExperience.max} years</p>
-                        <p><strong>Key Focus:</strong> {selectedQARole.keyResponsibilities[0]}</p>
+                {/* QA Role Meta & Readiness Score */}
+                {selectedQARole && qaSkillsReport && (
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg border-2 border-blue-200 p-8">
+                    <div className="grid md:grid-cols-3 gap-6 mb-6">
+                      {/* Role Information */}
+                      <div className="md:col-span-2">
+                        <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-2 mb-4">
+                          <span className="text-3xl">🎯</span>
+                          {selectedQARole.title}
+                        </h2>
+                        <div className="space-y-2 text-sm text-slate-700">
+                          <p><strong>Category:</strong> {selectedQARole.category.charAt(0).toUpperCase() + selectedQARole.category.slice(1)}</p>
+                          <p><strong>Experience Level:</strong> {selectedQARole.yearsExperience.min}-{selectedQARole.yearsExperience.max} years</p>
+                          <p><strong>Key Focus:</strong> {selectedQARole.keyResponsibilities[0]}</p>
+                        </div>
+                      </div>
+
+                      {/* Readiness Score */}
+                      <div className="bg-white rounded-xl p-6 text-center border-2 border-blue-300">
+                        <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                          {qaSkillsReport.overallReadiness}%
+                        </div>
+                        <p className="text-sm font-semibold text-slate-700 mb-3">Role Readiness</p>
+                        <div className="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.round(qaSkillsReport.overallReadiness || 0)}%` }}
+                            role="progressbar"
+                            aria-label="Role readiness percentage"
+                            aria-valuenow={Math.round(qaSkillsReport.overallReadiness || 0)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                          />
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Readiness Score */}
-                    <div className="bg-white rounded-xl p-6 text-center border-2 border-blue-300">
-                      <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
-                        {qaSkillsReport.overallReadiness}%
+
+                    {/* Strengths & Gaps */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                        <p className="text-sm font-bold text-green-900 mb-2">✅ Your Strengths</p>
+                        <ul className="text-xs text-green-800 space-y-1">
+                          {qaSkillsReport.strengths.map((strength: string, i: number) => (
+                            <li key={i}>• {strength}</li>
+                          ))}
+                        </ul>
                       </div>
-                      <p className="text-sm font-semibold text-slate-700 mb-3">Role Readiness</p>
-                      <div className="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${Math.max(0, Math.min(100, Math.round(qaSkillsReport.overallReadiness)))}%` }}
-                          role="progressbar"
-                          aria-label="Role readiness percentage"
-                          aria-valuenow={Number.isFinite(qaSkillsReport.overallReadiness) ? Math.round(qaSkillsReport.overallReadiness) : 0}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        />
+                      <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
+                        <p className="text-sm font-bold text-amber-900 mb-2">⚠️ Critical Gaps</p>
+                        <ul className="text-xs text-amber-800 space-y-1">
+                          {qaSkillsReport.criticalGaps.map((gap: string, i: number) => (
+                            <li key={i}>• {gap}</li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Strengths & Gaps */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-                      <p className="text-sm font-bold text-green-900 mb-2">✅ Your Strengths</p>
-                      <ul className="text-xs text-green-800 space-y-1">
-                        {qaSkillsReport.strengths.map((strength: string, i: number) => (
-                          <li key={i}>• {strength}</li>
+                )}
+
+                {/* Results Header */}
+                <div id="ats-section" className="bg-white rounded-2xl shadow-xl border-2 border-green-500/20 p-8 mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-3">
+                      <div className="w-1.5 h-8 bg-green-400 rounded-full mr-2" />
+                      ✅ Review Generated Successfully
+                    </h2>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          const resultId = `result_${Date.now()}`;
+                          setCurrentResultId(resultId);
+                          setShowFeedbackModal(true);
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold transition-all shadow-md flex items-center gap-2"
+                      >
+                        ⭐ Rate This Result
+                      </button>
+                      <button
+                        onClick={() => {
+                          setResult(null)
+                          setResume('')
+                          setJobDescription('')
+                        }}
+                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-colors"
+                      >
+                        ← New Review
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-3">
+                    {result.cached
+                      ? `Originally generated in ${(result.generationTimeMs / 1000).toFixed(1)}s • Retrieved instantly from cache`
+                      : `Generated in ${(result.generationTimeMs / 1000).toFixed(1)}s using ${result.provider === 'gemini' ? '🚀 Gemini AI' : '🤗 HuggingFace AI'}`
+                    }
+                  </p>
+                  {result.matchedKeywords && result.matchedKeywords.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Terms Identified:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {result.matchedKeywords.map((keyword, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-logic-cyan/10 text-logic-cyan-bright border border-logic-cyan/20 rounded-full text-xs font-semibold"
+                          >
+                            {keyword}
+                          </span>
                         ))}
-                      </ul>
+                      </div>
                     </div>
-                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
-                      <p className="text-sm font-bold text-amber-900 mb-2">⚠️ Critical Gaps</p>
-                      <ul className="text-xs text-amber-800 space-y-1">
-                        {qaSkillsReport.criticalGaps.map((gap: string, i: number) => (
-                          <li key={i}>• {gap}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
-              
-              {/* Results Header */}
-              <div id="ats-section" className="bg-white rounded-2xl shadow-xl border-2 border-green-500/20 p-8 mt-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-1.5 h-8 bg-green-400 rounded-full mr-2" />
-                  <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-3">✅ Review Generated Successfully</h2>
-                </div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-3">
-                    ✅ Review Generated Successfully
-                  </h2>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        const resultId = `result_${Date.now()}`;
-                        setCurrentResultId(resultId);
-                        setShowFeedbackModal(true);
-                      }}
-                      className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold transition-all shadow-md flex items-center gap-2"
-                    >
-                      ⭐ Rate This Result
-                    </button>
-                    <button
-                      onClick={() => {
-                        setResult(null)
-                        setResume('')
-                        setJobDescription('')
-                      }}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-colors"
-                    >
-                      ← New Review
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-600 mb-3">
-                  {result.cached 
-                    ? `Originally generated in ${(result.generationTimeMs / 1000).toFixed(1)}s • Retrieved instantly from cache`
-                    : `Generated in ${(result.generationTimeMs / 1000).toFixed(1)}s using ${result.provider === 'gemini' ? '🚀 Gemini AI' : '🤗 HuggingFace AI'}`
-                  }
-                </p>
-                {result.matchedKeywords && result.matchedKeywords.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Terms Identified:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {result.matchedKeywords.map((keyword, idx) => (
-                        <span 
-                          key={idx}
-                          className="px-3 py-1 bg-logic-cyan/10 text-logic-cyan-bright border border-logic-cyan/20 rounded-full text-xs font-semibold"
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              {/* Strategic Role Analysis & ATS Optimisation */}
-              <div className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 p-8">
-                <h3 className="text-xl font-bold text-deep-blueprint mb-4 flex items-center gap-2">
-                  <span className="text-2xl">🎯</span>
-                  Strategic Role Analysis & ATS Optimisation
-                </h3>
-                <div className="prose max-w-none">
-                  <ReactMarkdown 
-                    components={{
-                      // Highlight keywords if available
-                      p: ({children}) => {
-                        if (typeof children === 'string' && result.matchedKeywords) {
-                          let text = children;
-                          result.matchedKeywords.forEach(keyword => {
-                            const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                            text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
-                          });
-                          return <p dangerouslySetInnerHTML={{__html: text}} className="mb-4 text-slate-700" />;
-                        }
-                        return <p className="mb-4 text-slate-700">{children}</p>;
-                      }
-                    }}
-                  >
-                    {unescape(result.atsResume)}
-                  </ReactMarkdown>
-                </div>
-              </div>
-
-              {/* Interview Preparation Guide */}
-              <div id="interview-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
-                <button
-                  onClick={() => toggleSection('interview')}
-                  className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
-                    <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                      <span className="text-2xl">🎤</span>
-                      Behavioural & Soft Skills Questions (5 STAR Method)
-                    </h3>
-                  </div>
-                  {expandedSections.interview ? 
-                    <ChevronUp className="w-6 h-6 text-slate-400" /> : 
-                    <ChevronDown className="w-6 h-6 text-slate-400" />
-                  }
-                </button>
-                <button
-                  onClick={() => toggleSection('interview')}
-                  className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                  <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                    <span className="text-2xl">🎤</span>
-                    Behavioural & Soft Skills Questions (5 STAR Method)
+                {/* Strategic Role Analysis & ATS Optimisation */}
+                <div className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 p-8">
+                  <h3 className="text-xl font-bold text-deep-blueprint mb-4 flex items-center gap-2">
+                    <span className="text-2xl">🎯</span>
+                    Strategic Role Analysis & ATS Optimisation
                   </h3>
-                  {expandedSections.interview ? 
-                    <ChevronUp className="w-6 h-6 text-slate-400" /> : 
-                    <ChevronDown className="w-6 h-6 text-slate-400" />
-                  }
-                </button>
-                {expandedSections.interview && (
-                  <div className="px-8 pb-8">
-                    <div className="prose max-w-none">
-                      <ReactMarkdown>{unescape(result.interviewGuide)}</ReactMarkdown>
-                    </div>
-                    
-                    {/* Interview Practice Button removed as per request */}
-                  </div>
-                )}
-              </div>
-
-              {/* Domain Questions */}
-              <div id="domain-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
-                <button
-                  onClick={() => toggleSection('domain')}
-                  className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
-                    <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                      <span className="text-2xl">💡</span>
-                      Domain-Specific Technical Questions (5 Questions)
-                    </h3>
-                  </div>
-                  {expandedSections.domain ? 
-                    <ChevronUp className="w-6 h-6 text-slate-400" /> : 
-                    <ChevronDown className="w-6 h-6 text-slate-400" />
-                  }
-                </button>
-                <button
-                  onClick={() => toggleSection('domain')}
-                  className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                >
-                  <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                    <span className="text-2xl">💡</span>
-                    Domain-Specific Technical Questions (5 Questions)
-                  </h3>
-                  {expandedSections.domain ? 
-                    <ChevronUp className="w-6 h-6 text-slate-400" /> : 
-                    <ChevronDown className="w-6 h-6 text-slate-400" />
-                  }
-                </button>
-                {expandedSections.domain && (
-                  <div className="px-8 pb-8">
-                    <div className="prose max-w-none">
-                      <ReactMarkdown>{unescape(result.domainQuestions)}</ReactMarkdown>
-                    </div>
-                    
-                    {/* Technical Practice Button removed as per request */}
-                  </div>
-                )}
-              </div>
-
-              {/* Skills Gap & Action Plan */}
-              <div id="gap-section" className="bg-white rounded-2xl shadow-xl border-2 border-warning-amber/30 p-8 mt-12">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-1.5 h-8 bg-amber-400 rounded-full mr-2" />
-                  <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2"><span className="text-2xl">📊</span>Skills Gap & Action Plan</h3>
-                </div>
-                <div className="prose max-w-none">
-                  <ReactMarkdown>{unescape(result.gapAnalysis)}</ReactMarkdown>
-                </div>
-              </div>
-
-              {/* Optimized CV Section */}
-              {result.optimizedCV && (
-                <div id="cv-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan/30 p-8 mt-12">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1.5 h-8 bg-cyan-400 rounded-full mr-2" />
-                    <h3 className="text-xl font-bold text-logic-cyan-bright flex items-center gap-2"><span className="text-2xl">📝</span>The Rewritten UK CV (with Six-Second Recruiter Test)</h3>
-                  </div>
-                  <div className="prose max-w-none mb-6">
+                  <div className="prose max-w-none">
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       components={{
-                        p: ({children}) => {
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                            <table className="min-w-full divide-y divide-slate-200">
+                              {children}
+                            </table>
+                          </div>
+                        ),
+                        thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                        th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                        td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                        p: ({ children }) => {
                           if (typeof children === 'string' && result.matchedKeywords) {
                             let text = children;
                             result.matchedKeywords.forEach(keyword => {
                               const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                              text = text.replace(regex, `<mark class=\"bg-logic-cyan/20 px-1 rounded font-bold\">$1</mark>`);
+                              text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
                             });
-                            return <p dangerouslySetInnerHTML={{__html: text}} className="mb-4 text-slate-700" />;
+                            const sanitizedHtml = DOMPurify.sanitize(text);
+                            return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
                           }
-                          return <p className="mb-4 text-slate-700">{children}</p>;
+                          return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
                         }
                       }}
                     >
-                      {unescape(result.optimizedCV)}
+                      {result.atsResume}
                     </ReactMarkdown>
                   </div>
-                  <div className="flex flex-wrap gap-4">
-                    <button
-                      onClick={() => {
-                        try {
-                          exportOptimizedCV(result.optimizedCV!, {
-                            format: 'professional',
-                            colorScheme: 'blue',
-                            includeKeywords: true,
-                            qaRole: selectedQARole,
-                            qaFocused: true,
-                          });
-                        } catch (error) {
-                          alert('Failed to export PDF. Please try again.');
-                          console.error('PDF export error:', error);
-                        }
-                      }}
-                      className="px-6 py-3 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-600/30 transition-all duration-300 flex items-center gap-2"
-                    >
-                      📥 Download Professional CV (PDF)
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(unescape(result.optimizedCV!));
-                        alert('Optimized CV copied to clipboard!');
-                      }}
-                      className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
-                    >
-                      📋 Copy Text
-                    </button>
-                  </div>
                 </div>
-              )}
 
-              {/* Cover Letter Section */}
-              {result.coverLetter && (
-                <div id="cover-section" className="bg-white rounded-2xl shadow-xl border-2 border-purple-400/30 p-8 mt-12">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1.5 h-8 bg-purple-400 rounded-full mr-2" />
-                    <h3 className="text-xl font-bold text-purple-600 flex items-center gap-2"><span className="text-2xl">✉️</span>Tailored UK Cover Letter</h3>
-                  </div>
-                  <div className="prose max-w-none mb-6">
-                    <ReactMarkdown>{unescape(result.coverLetter)}</ReactMarkdown>
-                  </div>
-                  <div className="flex flex-wrap gap-4">
-                    <button
-                      onClick={() => {
-                        try {
-                          exportCoverLetter(result.coverLetter!, 'purple');
-                        } catch (error) {
-                          alert('Failed to export cover letter PDF.');
-                          console.error('PDF export error:', error);
-                        }
-                      }}
-                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 flex items-center gap-2"
-                    >
-                      📥 Download Cover Letter (PDF)
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(unescape(result.coverLetter!));
-                        alert('Cover letter copied to clipboard!');
-                      }}
-                      className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-                    >
-                      📋 Copy Text
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4 mt-8">
-              {/* Back to Top Button */}
-              {showTop && (
-                <button
-                  type="button"
-                  onClick={() => window.scrollTo({top:0,behavior:'smooth'})}
-                  className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transition-all text-lg font-bold"
-                  aria-label="Back to Top"
-                >
-                  ⬆ Back to Top
-                </button>
-              )}
-                <button
-                  onClick={() => {
-                    try {
-                      exportToPDF(result);
-                    } catch (error) {
-                      alert('Failed to export PDF. Please try again or use the print option.');
-                      console.error('PDF export error:', error);
+                {/* Interview Preparation Guide */}
+                <div id="interview-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
+                  <button
+                    onClick={() => toggleSection('interview')}
+                    className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
+                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                        <span className="text-2xl">🎤</span>
+                        Behavioural & Soft Skills Questions (5 STAR Method)
+                      </h3>
+                    </div>
+                    {expandedSections.interview ?
+                      <ChevronUp className="w-6 h-6 text-slate-400" /> :
+                      <ChevronDown className="w-6 h-6 text-slate-400" />
                     }
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
-                >
-                  📥 Download PDF
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="px-6 py-3 bg-deep-blueprint text-white rounded-lg font-semibold hover:bg-blue-900 transition-colors"
-                >
-                  🖨️ Print Results
-                </button>
-                <button
-                  onClick={() => {
-                    const text = `ATS Resume:\n${result.atsResume}\n\nInterview Guide:\n${result.interviewGuide}\n\nDomain Questions:\n${result.domainQuestions}\n\nGap Analysis:\n${result.gapAnalysis}`
-                    navigator.clipboard.writeText(text)
-                    alert('Results copied to clipboard!')
-                  }}
-                  className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
-                >
-                  📋 Copy All Results
-                </button>
-              </div>
+                  </button>
+                  {expandedSections.interview && (
+                    <div className="px-8 pb-8">
+                      <div className="prose max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                            p: ({ children }) => {
+                              if (typeof children === 'string' && result.matchedKeywords) {
+                                let text = children;
+                                result.matchedKeywords.forEach(keyword => {
+                                  const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                  text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
+                                });
+                                const sanitizedHtml = DOMPurify.sanitize(text);
+                                return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                              }
+                              return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                            }
+                          }}
+                        >
+                          {DOMPurify.sanitize(result.interviewGuide)}
+                        </ReactMarkdown>
+                      </div>
+
+                      {/* Interview Practice Button removed as per request */}
+                    </div>
+                  )}
+                </div>
+
+                {/* Domain Questions */}
+                <div id="domain-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
+                  <button
+                    onClick={() => toggleSection('domain')}
+                    className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
+                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                        <span className="text-2xl">💡</span>
+                        Domain-Specific Technical Questions (5 Questions)
+                      </h3>
+                    </div>
+                    {expandedSections.domain ?
+                      <ChevronUp className="w-6 h-6 text-slate-400" /> :
+                      <ChevronDown className="w-6 h-6 text-slate-400" />
+                    }
+                  </button>
+                  {expandedSections.domain && (
+                    <div className="px-8 pb-8">
+                      <div className="prose max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                            p: ({ children }) => {
+                              if (typeof children === 'string' && result.matchedKeywords) {
+                                let text = children;
+                                result.matchedKeywords.forEach(keyword => {
+                                  const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                  text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
+                                });
+                                const sanitizedHtml = DOMPurify.sanitize(text);
+                                return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                              }
+                              return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                            }
+                          }}
+                        >
+                          {DOMPurify.sanitize(result.domainQuestions)}
+                        </ReactMarkdown>
+                      </div>
+
+                      {/* Technical Practice Button removed as per request */}
+                    </div>
+                  )}
+                </div>
+
+                {/* Skills Gap & Action Plan */}
+                <div id="gap-section" className="bg-white rounded-2xl shadow-xl border-2 border-warning-amber/30 p-8 mt-12">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-1.5 h-8 bg-amber-400 rounded-full mr-2" />
+                    <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2"><span className="text-2xl">📊</span>Skills Gap & Action Plan</h3>
+                  </div>
+                  <div className="prose max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                            <table className="min-w-full divide-y divide-slate-200">
+                              {children}
+                            </table>
+                          </div>
+                        ),
+                        thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                        th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                        td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                      }}
+                    >
+                      {DOMPurify.sanitize(result.gapAnalysis)}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Optimized CV Section */}
+                {result.optimizedCV && (
+                  <div id="cv-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan/30 p-8 mt-12">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-1.5 h-8 bg-cyan-400 rounded-full mr-2" />
+                      <h3 className="text-xl font-bold text-logic-cyan-bright flex items-center gap-2"><span className="text-2xl">📝</span>The Rewritten UK CV</h3>
+                    </div>
+                    <div className="prose max-w-none mb-6">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ children }) => (
+                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                              <table className="min-w-full divide-y divide-slate-200">
+                                {children}
+                              </table>
+                            </div>
+                          ),
+                          thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                          th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                          p: ({ children }) => {
+                            if (typeof children === 'string' && result.matchedKeywords) {
+                              let text = children;
+                              result.matchedKeywords.forEach(keyword => {
+                                const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded font-bold">$1</mark>`);
+                              });
+                              const sanitizedHtml = DOMPurify.sanitize(text);
+                              return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                            }
+                            return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                          }
+                        }}
+                      >
+                        {DOMPurify.sanitize(result.optimizedCV)}
+                      </ReactMarkdown>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      <button
+                        onClick={() => {
+                          try {
+                            exportOptimizedCV(result.optimizedCV!, {
+                              format: 'professional',
+                              colorScheme: 'blue',
+                              includeKeywords: true,
+                              qaRole: selectedQARole,
+                              qaFocused: true,
+                            });
+                          } catch (error) {
+                            alert('Failed to export PDF. Please try again.');
+                            console.error('PDF export error:', error);
+                          }
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-600/30 transition-all duration-300 flex items-center gap-2"
+                      >
+                        📥 Download Professional CV (PDF)
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(result.optimizedCV!);
+                          alert('Optimized CV copied to clipboard!');
+                        }}
+                        className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
+                      >
+                        📋 Copy Text
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cover Letter Section */}
+                {result.coverLetter && (
+                  <div id="cover-section" className="bg-white rounded-2xl shadow-xl border-2 border-purple-400/30 p-8 mt-12">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-1.5 h-8 bg-purple-400 rounded-full mr-2" />
+                      <h3 className="text-xl font-bold text-purple-600 flex items-center gap-2"><span className="text-2xl">✉️</span>Tailored UK Cover Letter</h3>
+                    </div>
+                    <div className="prose max-w-none mb-6">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ children }) => (
+                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                              <table className="min-w-full divide-y divide-slate-200">
+                                {children}
+                              </table>
+                            </div>
+                          ),
+                          thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                          th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                        }}
+                      >
+                        {DOMPurify.sanitize(result.coverLetter)}
+                      </ReactMarkdown>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      <button
+                        onClick={() => {
+                          try {
+                            exportCoverLetter(result.coverLetter!, 'purple');
+                          } catch (error) {
+                            alert('Failed to export cover letter PDF.');
+                            console.error('PDF export error:', error);
+                          }
+                        }}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 flex items-center gap-2"
+                      >
+                        📥 Download Cover Letter (PDF)
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(result.coverLetter!);
+                          alert('Cover letter copied to clipboard!');
+                        }}
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                      >
+                        📋 Copy Text
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Six-Second Recruiter Test Section */}
+                {result.sixSecondTest && (
+                  <div id="six-second-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan-bright/30 p-8 mt-12 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                      <span className="text-6xl text-logic-cyan-bright">⏱️</span>
+                    </div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1.5 h-8 bg-logic-cyan-bright rounded-full mr-2" />
+                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                        <span className="text-2xl">⏳</span>
+                        Six-Second Recruiter Test
+                      </h3>
+                    </div>
+                    <div className="prose max-w-none bg-slate-50/50 p-6 rounded-xl border border-slate-100">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ children }) => (
+                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                              <table className="min-w-full divide-y divide-slate-200">
+                                {children}
+                              </table>
+                            </div>
+                          ),
+                          thead: ({ children }) => <thead className="bg-slate-100/50">{children}</thead>,
+                          th: ({ children }) => <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{children}</th>,
+                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 leading-relaxed border-t border-slate-100">{children}</td>,
+                        }}
+                      >
+                        {DOMPurify.sanitize(result.sixSecondTest)}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-4 mt-8">
+                  {/* Back to Top Button */}
+                  {showTop && (
+                    <button
+                      type="button"
+                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                      className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transition-all text-lg font-bold"
+                      aria-label="Back to Top"
+                    >
+                      ⬆ Back to Top
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      try {
+                        exportToPDF(result);
+                      } catch (error) {
+                        alert('Failed to export PDF. Please try again or use the print option.');
+                        console.error('PDF export error:', error);
+                      }
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
+                  >
+                    📥 Download PDF
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="px-6 py-3 bg-deep-blueprint text-white rounded-lg font-semibold hover:bg-blue-900 transition-colors"
+                  >
+                    🖨️ Print Results
+                  </button>
+                  <button
+                    onClick={() => {
+                      const text = `ATS Resume:\n${result.atsResume}\n\nInterview Guide:\n${result.interviewGuide}\n\nDomain Questions:\n${result.domainQuestions}\n\nGap Analysis:\n${result.gapAnalysis}\n\nSix-Second Recruiter Test:\n${result.sixSecondTest}`
+                      navigator.clipboard.writeText(text)
+                      alert('Results copied to clipboard!')
+                    }}
+                    className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
+                  >
+                    📋 Copy All Results
+                  </button>
+                </div>
               </div>
               {/* Version History Sidebar */}
               <div className="w-full md:w-80 shrink-0">
@@ -1813,6 +1955,7 @@ export default function CVReviewPage() {
                         gapAnalysis: JSON.parse(version.response).gapAnalysis || '',
                         optimizedCV: JSON.parse(version.response).optimizedCV || '',
                         coverLetter: JSON.parse(version.response).coverLetter || '',
+                        sixSecondTest: JSON.parse(version.response).sixSecondTest || '',
                         matchedKeywords: JSON.parse(version.response).matchedKeywords || [],
                         provider: JSON.parse(version.response).provider || 'gemini',
                         generationTimeMs: JSON.parse(version.response).generationTimeMs || 0,
@@ -1841,7 +1984,7 @@ export default function CVReviewPage() {
               AI-powered analysis in 3 simple steps
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 mt-12">
             <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl border border-white/20">
               <div className="text-5xl mb-4">📝</div>
@@ -1850,7 +1993,7 @@ export default function CVReviewPage() {
                 Add your resume and target job description. No file uploads needed, just copy & paste.
               </p>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl border border-white/20">
               <div className="text-5xl mb-4">🤖</div>
               <h3 className="text-xl font-bold mb-3">2. UK-Focused AI Analysis</h3>
@@ -1858,7 +2001,7 @@ export default function CVReviewPage() {
                 Our AI specialises in UK tech recruitment, analyses role alignment, generates 20 interview questions (10 behavioural + 10 technical), and uses British English throughout.
               </p>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm p-8 rounded-xl border border-white/20">
               <div className="text-5xl mb-4">✅</div>
               <h3 className="text-xl font-bold mb-3">3. Get Results</h3>

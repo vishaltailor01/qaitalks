@@ -22,7 +22,8 @@ const BlogContent: React.FC<BlogContentProps> = ({ html }) => {
         const className = codeNode.attribs.class || '';
         const languageMatch = className.match(/language-(\w+)/);
         const language = languageMatch ? languageMatch[1] : 'text';
-        const code = codeNode.children && codeNode.children[0] && (codeNode.children[0] as any).data ? (codeNode.children[0] as any).data : '';
+        const firstChild = codeNode.children && codeNode.children.length > 0 ? codeNode.children[0] : null;
+        const code = firstChild && 'data' in firstChild ? (firstChild as { data: string }).data : '';
         return <CodeBlock code={code} language={language} />;
       }
     },

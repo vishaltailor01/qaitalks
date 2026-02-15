@@ -8,6 +8,8 @@ interface CVReviewResult {
   gapAnalysis: string;
   optimizedCV: string;
   coverLetter: string;
+  sixSecondTest: string;
+  matchedKeywords?: string[];
   provider: 'gemini' | 'huggingface';
   generationTimeMs: number;
 }
@@ -75,8 +77,15 @@ export function getHistory(): CVReviewHistoryItem[] {
       return [];
     }
 
-    const history = JSON.parse(stored) as CVReviewHistoryItem[];
-    
+    const history = (JSON.parse(stored) as CVReviewHistoryItem[]).map(item => ({
+      ...item,
+      result: {
+        ...item.result,
+        sixSecondTest: item.result.sixSecondTest || '',
+        matchedKeywords: item.result.matchedKeywords || [],
+      }
+    }));
+
     // Validate structure
     if (!Array.isArray(history)) {
       return [];
@@ -144,7 +153,7 @@ export function formatHistoryDate(timestamp: number): string {
   if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  
+
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -239,7 +248,7 @@ export function loadDraft(): CVReviewDraft | null {
     }
 
     const draft = JSON.parse(stored) as CVReviewDraft;
-    
+
     // Validate structure
     if (!draft.resume || !draft.jobDescription || !draft.timestamp) {
       return null;

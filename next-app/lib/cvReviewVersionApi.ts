@@ -21,9 +21,9 @@ export async function fetchVersions(): Promise<CVReviewVersion[]> {
 }
 
 export async function saveVersion(data: {
-  request: any;
-  response: any;
-  meta: any;
+  request: unknown;
+  response: unknown;
+  meta: unknown;
   reviewId?: string;
 }): Promise<CVReviewVersion> {
   const res = await fetch('/api/cv-review-version', {

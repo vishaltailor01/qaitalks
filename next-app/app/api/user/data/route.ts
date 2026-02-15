@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { getPrisma } from '@/lib/db';
 
 // GET /api/user/data - Export all user data (GDPR)
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 }
 
 // DELETE /api/user/data - Delete all user data (GDPR)
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

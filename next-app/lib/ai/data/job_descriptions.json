@@ -1,0 +1,42 @@
+{
+    "automation_engineer": {
+        "title": "Senior Test Automation Engineer (SDET)",
+        "description": "We are seeking a Senior SDET to lead our automation efforts. You will design, develop and maintain automated testing frameworks for our cloud-based platforms.",
+        "key_requirements": [
+            "Expert knowledge of Playwright, Cypress or Selenium",
+            "Strong proficiency in TypeScript, Java or Python",
+            "Experience with CI/CD integration using GitHub Actions or Azure DevOps",
+            "Knowledge of API testing (RestAssured, Postman)",
+            "Understanding of microservices architecture"
+        ],
+        "keywords": [
+            "Playwright",
+            "TypeScript",
+            "CI/CD",
+            "API Testing",
+            "SDET",
+            "Microservices",
+            "Cloud",
+            "AWS"
+        ]
+    },
+    "qa_lead": {
+        "title": "QA Lead / Test Manager",
+        "description": "Leading a cross-functional team of QA engineers to deliver high-quality software products. You will define the strategy and oversee the delivery.",
+        "key_requirements": [
+            "Proven leadership experience in a QA environment",
+            "Expertise in Test Management tools (Jira, Zephyr)",
+            "Strong understanding of Agile/Scrum methodologies",
+            "Experience in defining risk-based testing strategies",
+            "Excellent stakeholder management and communication skills"
+        ],
+        "keywords": [
+            "Leadership",
+            "Test Strategy",
+            "Agile",
+            "Risk-Based Testing",
+            "Stakeholder Management",
+            "QA Management"
+        ]
+    }
+}

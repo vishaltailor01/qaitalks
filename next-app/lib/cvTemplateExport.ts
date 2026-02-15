@@ -147,7 +147,7 @@ function addWrappedText(
 
     const lines = doc.splitTextToSize(paragraph.trim(), maxWidth);
     
-    lines.forEach((line: string, index: number) => {
+    lines.forEach((line: string) => {
       // Check if we need a new page
       if (y + lineHeight > pageHeight - margin) {
         doc.addPage();

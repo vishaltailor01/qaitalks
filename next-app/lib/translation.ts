@@ -6,22 +6,21 @@ import { CVGenerationResponse } from './ai/types';
 export type SupportedLanguage = 'en' | 'fr' | 'de' | 'es' | 'it' | 'pt' | 'zh' | 'ja' | 'ru' | 'ar';
 
 // Dummy implementation (replace with real API call)
-export async function translateText(text: string, targetLang: SupportedLanguage): Promise<string> {
+export async function translateText(text: string): Promise<string> {
   // TODO: Integrate with Google Cloud Translate, DeepL, or Azure Translator
   // For now, just return the original text
   return text;
 }
 
 export async function translateCVSections(
-  cv: CVGenerationResponse,
-  targetLang: SupportedLanguage
+  cv: CVGenerationResponse
 ): Promise<Partial<CVGenerationResponse>> {
   return {
-    optimizedCV: await translateText(cv.optimizedCV, targetLang),
-    atsResume: await translateText(cv.atsResume, targetLang),
-    interviewGuide: await translateText(cv.interviewGuide, targetLang),
-    domainQuestions: await translateText(cv.domainQuestions, targetLang),
-    gapAnalysis: await translateText(cv.gapAnalysis, targetLang),
-    coverLetter: await translateText(cv.coverLetter, targetLang),
+    optimizedCV: await translateText(cv.optimizedCV),
+    atsResume: await translateText(cv.atsResume),
+    interviewGuide: await translateText(cv.interviewGuide),
+    domainQuestions: await translateText(cv.domainQuestions),
+    gapAnalysis: await translateText(cv.gapAnalysis),
+    coverLetter: await translateText(cv.coverLetter),
   };
 }

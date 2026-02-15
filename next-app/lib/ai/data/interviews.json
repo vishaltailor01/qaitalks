@@ -1,0 +1,29 @@
+{
+    "common": {
+        "behavioural": [
+            {
+                "question": "Tell me about a time you had a conflict with a developer regarding a bug.",
+                "competency": "Conflict Resolution / Communication",
+                "star_guide": "S: Deadline approaching for a critical release. T: Fixed a major bug but dev claimed it was 'by design'. A: Scheduled a 1-on-1, showed requirement doc vs actual behavior, suggested a compromise. R: Bug fixed, relationship improved."
+            }
+        ]
+    },
+    "manual": {
+        "technical": [
+            {
+                "question": "How do you decide which tests to automate first?",
+                "focus": "Strategy & ROI",
+                "answer_outline": "Focus on high-risk areas, repetitive regression tests, and stable features. Use a risk-based approach evaluating frequency of use and business impact."
+            }
+        ]
+    },
+    "automation": {
+        "technical": [
+            {
+                "question": "Explain the difference between the Page Object Model and Screenplay pattern.",
+                "focus": "Design Patterns",
+                "answer_outline": "POM focuses on page-level objects and their actions. Screenplay is actor-centric, improving modularity and using SOLID principles (Tasks, Actions, Interactions)."
+            }
+        ]
+    }
+}

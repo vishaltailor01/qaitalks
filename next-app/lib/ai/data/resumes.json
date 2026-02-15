@@ -1,0 +1,14 @@
+{
+    "manual": {
+        "before": "Manual Tester with 5 years experience. I test apps and find bugs. I use Jira and Excel.",
+        "after": "**PROFESSIONAL SUMMARY**\nDynamic Senior QA Engineer with 5+ years of experience in the UK fintech sector. Expert in end-to-end testing cycles with a focus on delivering high-quality user experiences. Proven track record of increasing delivery velocity by 30% through strategic test automation and robust bug lifecycle management."
+    },
+    "automation": {
+        "before": "Automation tester with 3 years using Selenium and Java. I write scripts for web apps.",
+        "after": "**PROFESSIONAL SUMMARY**\nResults-driven Test Automation Engineer with over 3 years of experience specializing in the design and implementation of scalable automation frameworks using Java, Selenium, and Playwright. Expert in integrating automated test suites into CI/CD pipelines (GitHub Actions, Jenkins), resulting in a 40% reduction in regression testing time and improved software stability."
+    },
+    "lead": {
+        "before": "QA Lead for 8 years. I manage teams and talk to stakeholders. I use Scrum.",
+        "after": "**PROFESSIONAL SUMMARY**\nStrategic Head of Quality with 8+ years of leadership experience spearheading QA transformation initiatives within Tier-1 UK financial institutions. Adept at defining enterprise-level quality strategies, mentor-led team development, and implementing ROI-driven automation roadmaps. Proven success in reducing production escaped defects by 25% through 'Shift-Left' principles and robust risk-based testing methodologies."
+    }
+}

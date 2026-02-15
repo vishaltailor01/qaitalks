@@ -40,7 +40,7 @@ export function exportAsHtml(cv: CVGenerationResponse): string {
 }
 
 // --- DOCX Export (using docx library) ---
-import { Document, Packer, Paragraph, HeadingLevel, TextRun } from 'docx';
+import { Document, Packer, Paragraph, HeadingLevel } from 'docx';
 
 export async function exportAsDocx(cv: CVGenerationResponse): Promise<Blob> {
   const doc = new Document({

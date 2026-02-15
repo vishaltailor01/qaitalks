@@ -27,8 +27,8 @@ export async function GET() {
 
     // Try streaming
     const result = await model.generateContentStream('Count to 5, one number per line.');
-    
-    let chunks: string[] = [];
+
+    const chunks: string[] = [];
     for await (const chunk of result.stream) {
       const text = chunk.text();
       chunks.push(text);

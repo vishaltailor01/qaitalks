@@ -9,6 +9,7 @@ interface CVReviewResult {
   gapAnalysis: string;
   optimizedCV: string;
   coverLetter: string;
+  sixSecondTest: string;
   matchedKeywords?: string[];
   provider: 'gemini' | 'huggingface';
   generationTimeMs: number;
@@ -23,16 +24,16 @@ interface CVState {
   jobDescription: string;
   targetRole: string;
   industry: string;
-  
+
   // Results
   result: CVReviewResult | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Progress tracking
   progress: number;
   progressMessage: string;
-  
+
   // Actions
   setResume: (resume: string) => void;
   setJobDescription: (jobDescription: string) => void;
@@ -62,7 +63,7 @@ export const useCVStore = create<CVState>()(
   persist(
     (set) => ({
       ...initialState,
-      
+
       setResume: (resume) => set({ resume }),
       setJobDescription: (jobDescription) => set({ jobDescription }),
       setTargetRole: (targetRole) => set({ targetRole }),

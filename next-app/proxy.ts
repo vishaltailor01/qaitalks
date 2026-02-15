@@ -1,4 +1,4 @@
-// Middleware for authentication and route protection
+// Proxy (was: middleware) for authentication and route protection
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -7,7 +7,7 @@ const protectedRoutes = [
   '/dashboard',
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Check if the route starts with /api/auth (always allow)
@@ -36,7 +36,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Configure which routes use this middleware
+// Configure which routes use this proxy
 export const config = {
   matcher: [
     /*

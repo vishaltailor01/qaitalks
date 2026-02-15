@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         let lastError: Error | null = null;
-        
+
         // Retry loop for initial connection
         while (attempt < maxAttempts) {
           attempt++;
@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
               if (chunk.type === 'error' || chunk.type === 'complete') {
                 // Parse final response if complete
                 if (chunk.type === 'complete' && chunk.fullText) {
+                  console.log('[DEBUG Backend] Complete stream received, length:', chunk.fullText.length);
                   const parsed = parseStreamedResponse(chunk.fullText);
                   // Run modular validation pipeline
                   // Build a full CVGenerationResponse object for validation and output
@@ -119,12 +120,14 @@ export async function POST(request: NextRequest) {
                     gapAnalysis: parsed.gapAnalysis || '',
                     optimizedCV: parsed.optimizedCV || '',
                     coverLetter: parsed.coverLetter || '',
+                    sixSecondTest: parsed.sixSecondTest || '',
                     matchedKeywords: [],
-                    provider: 'gemini' as 'gemini',
+                    provider: 'gemini' as const,
                     generationTimeMs: 0, // Could be set to actual time if tracked
                     sections: parsed,
                   };
                   const validationResults = runValidationPipeline(cvRequest, cvResponse, defaultValidators);
+                  console.log('[DEBUG Backend] Validation results:', validationResults);
                   const finalData = JSON.stringify({
                     type: 'parsed',
                     ...cvResponse,

@@ -344,7 +344,7 @@ export function atsSimulationValidator(
 export interface ValidationResult {
   hallucinationIssues?: HallucinationIssue[];
   // Add more result types as new validators are added
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export type Validator = (

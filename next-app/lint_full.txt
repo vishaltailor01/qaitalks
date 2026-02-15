@@ -1,0 +1,42 @@
+﻿
+> next-app@0.1.0 lint
+> eslint
+
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\api\cv-review-version\route.ts
+  40:27  warning  'request' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\api\cv-review\stream\route.ts
+  123:43  error  Expected a `const` instead of a literal type assertion  @typescript-eslint/prefer-as-const
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\api\test-stream\route.ts
+  31:9  error  'chunks' is never reassigned. Use 'const' instead  prefer-const
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\api\user\data\route.ts
+   6:27  warning  'request' is defined but never used  @typescript-eslint/no-unused-vars
+  29:30  warning  'request' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\auth\signin\page.tsx
+  4:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\app\cv-review\page.tsx
+    20:3   warning  'getCachedResult' is defined but never used                      @typescript-eslint/no-unused-vars
+    22:3   warning  'formatCacheAge' is defined but never used                       @typescript-eslint/no-unused-vars
+   339:9   warning  'startInterviewPractice' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   577:9   warning  'handleRegenerate' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  1211:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1211:69  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1212:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1212:80  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1213:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1213:72  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1214:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1214:67  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\tailo\OneDrive\Desktop\QaiTAlk\next-app\components\BlogContent.tsx
+  25:92   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:129  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 20 problems (12 errors, 8 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
+

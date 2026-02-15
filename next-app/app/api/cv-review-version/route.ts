@@ -24,7 +24,7 @@ async function authenticateUser() {
     return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   }
 
-  const user = await getPrisma().user.findUnique({ 
+  const user = await getPrisma().user.findUnique({
     where: { email: session.user.email },
     select: { id: true, email: true },
   });
@@ -37,9 +37,9 @@ async function authenticateUser() {
 }
 
 // GET: List all versions for current user
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const requestId = generateRequestId();
-  
+
   try {
     const authResult = await authenticateUser();
     if (authResult.error) return authResult.error;
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         errors: validationResult.error.issues,
       });
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid request data',
           details: validationResult.error.issues,
         },
@@ -155,7 +155,7 @@ export async function DELETE(request: NextRequest) {
         errors: validationResult.error.issues,
       });
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid request data',
           details: validationResult.error.issues,
         },
