@@ -114,3 +114,20 @@ model BlogPost {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// User Profile
+model Profile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  image      String?
+  about      String?
+  experience String?  // JSON stringified array
+  skills     String?  // JSON stringified array
+  licenses   String?  // JSON stringified array
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

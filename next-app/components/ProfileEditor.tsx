@@ -6,6 +6,27 @@ import { parseCvFromText } from '@/lib/parseCv'
 const DEFAULT_AVATAR = '/default-avatar.png'
 
 export default function ProfileEditor() {
+  React.useEffect(() => {
+    // Load existing profile for current user
+    let mounted = true
+    async function load() {
+      try {
+        const res = await fetch('/api/profile')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!mounted) return
+        if (data.image) setImageSrc(data.image)
+        if (data.about) setAbout(data.about)
+        if (data.experience) setExperience(JSON.parse(data.experience || '[]'))
+        if (data.skills) setSkills(JSON.parse(data.skills || '[]'))
+        if (data.licenses) setCerts(JSON.parse(data.licenses || '[]'))
+      } catch (err) {
+        // ignore
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [about, setAbout] = useState('')
   const [experience, setExperience] = useState<string[]>([])
@@ -122,7 +143,30 @@ export default function ProfileEditor() {
       </section>
 
       <div className="flex items-center gap-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading}>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading} onClick={async () => {
+          setLoading(true)
+          setMessage(null)
+          try {
+            const payload = {
+              image: imageSrc,
+              about,
+              experience: JSON.stringify(experience),
+              skills: JSON.stringify(skills),
+              licenses: JSON.stringify(certs),
+            }
+            const res = await fetch('/api/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            })
+            if (!res.ok) throw new Error('Failed to save profile')
+            setMessage('Profile saved')
+          } catch (err) {
+            setMessage((err as Error).message || 'Save failed')
+          } finally {
+            setLoading(false)
+          }
+        }}>
           Save Profile
         </button>
         {loading && <span>Processing...</span>}
