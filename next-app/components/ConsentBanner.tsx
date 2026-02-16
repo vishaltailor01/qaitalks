@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react';
 
 export default function ConsentBanner() {
@@ -15,22 +16,12 @@ export default function ConsentBanner() {
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      width: '100%',
-      background: '#0a2540',
-      color: '#fff',
-      padding: '1rem',
-      zIndex: 1000,
-      textAlign: 'center',
-    }}>
+    <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 z-50 text-center">
       We use cookies for authentication and analytics. By using this site, you consent to our use of cookies. See our{' '}
-      <a href="/privacy-policy" style={{ color: '#4fd1c5', textDecoration: 'underline' }}>Privacy Policy</a>.
+      <a href="/privacy-policy" className="text-teal-400 underline">Privacy Policy</a>.
       <button
         onClick={handleAccept}
-        style={{ marginLeft: '1rem', background: '#4fd1c5', color: '#0a2540', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}
+        className="ml-4 bg-teal-400 text-blue-900 border-none px-4 py-2 rounded cursor-pointer"
       >
         Accept
       </button>

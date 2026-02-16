@@ -33,10 +33,7 @@ export interface FileProcessingResult {
  * Validate file before processing
  * Includes file type, size, and (future) malware scan
  */
-export async function validateFile(file: File): Promise<{
-  valid: boolean;
-  error?: string;
-} {
+export async function validateFile(file: File): Promise<{ valid: boolean; error?: string }> {
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
     return {
@@ -65,11 +62,10 @@ export async function validateFile(file: File): Promise<{
   // If malware is detected, return { valid: false, error: 'Malware detected in file.' }
 
   return { valid: true };
-// --- File retention and deletion policy ---
-// Files should be deleted after the retention period (e.g., 30 days)
-// Implement scheduled deletion in backend or storage layer
-// Ensure only the uploading user can access/delete their files (enforce in API)
-
+  // --- File retention and deletion policy ---
+  // Files should be deleted after the retention period (e.g., 30 days)
+  // Implement scheduled deletion in backend or storage layer
+  // Ensure only the uploading user can access/delete their files (enforce in API)
 }
 
 /**
@@ -237,7 +233,7 @@ export async function processFile(file: File): Promise<FileProcessingResult> {
   const fileSizeKB = Math.round(file.size / 1024);
   
   // Validate file
-  const validation = validateFile(file);
+  const validation = await validateFile(file);
   if (!validation.valid) {
     return {
       success: false,
