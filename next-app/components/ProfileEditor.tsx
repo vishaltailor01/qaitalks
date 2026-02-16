@@ -131,13 +131,22 @@ export default function ProfileEditor() {
     }
   }
 
+  function cfResize(url: string | null, width = 200) {
+    if (!url) return null
+    const host = process.env.NEXT_PUBLIC_CF_IMAGE_HOST
+    if (!host) return url
+    const base = host.replace(/\/$/, '')
+    // Use Cloudflare's image resizing proxy: /cdn-cgi/image/width=.../{originalUrl}
+    return `${base}/cdn-cgi/image/width=${width},quality=80/${encodeURIComponent(url)}`
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-2xl font-semibold mb-4">Profile</h1>
 
       <div className="flex items-center gap-6 mb-6">
         <img
-          src={imageSrc || DEFAULT_AVATAR}
+          src={cfResize(imageSrc, 96) || DEFAULT_AVATAR}
           alt="avatar"
           width={96}
           height={96}
