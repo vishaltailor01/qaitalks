@@ -39,6 +39,17 @@ export default function ProfileEditor() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
+    // Client-side size/type validation
+    const MAX = 5 * 1024 * 1024 // 5MB
+    if (f.size > MAX) {
+      setMessage('Image too large. Maximum 5MB.')
+      return
+    }
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+    if (!allowed.includes(f.type)) {
+      setMessage('Invalid image type. Use PNG/JPEG/WebP/GIF.')
+      return
+    }
     // Upload file to S3 via presigned URL
     try {
       setLoading(true)

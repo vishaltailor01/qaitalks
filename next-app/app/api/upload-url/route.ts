@@ -14,11 +14,19 @@ export async function POST(req: Request) {
     const { fileName, contentType } = await req.json()
     if (!fileName || !contentType) return NextResponse.json({ error: 'Missing fileName or contentType' }, { status: 400 })
 
+    // Validate content type
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
+    if (!allowed.includes(contentType)) {
+      return NextResponse.json({ error: 'Invalid content type' }, { status: 400 })
+    }
+
     const region = REGION
     const bucket = BUCKET
     if (!region || !bucket) return NextResponse.json({ error: 'S3 not configured' }, { status: 500 })
 
-    const key = `profiles/${Date.now()}-${Math.random().toString(36).slice(2)}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '')}`
+    // Sanitize and limit filename length
+    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 120)
+    const key = `profiles/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`
 
     const client = new S3Client({ region })
     const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType })
