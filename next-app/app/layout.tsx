@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Providers } from '@/app/providers'
 import { Navbar, Footer } from '@/components'
+import ConsentBanner from '@/components/ConsentBanner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default function RootLayout({
           <Navbar />
           {children}
           <Footer />
+          <ConsentBanner />
         </Providers>
       </body>
     </html>

@@ -31,8 +31,9 @@ export interface FileProcessingResult {
 
 /**
  * Validate file before processing
+ * Includes file type, size, and (future) malware scan
  */
-export function validateFile(file: File): {
+export async function validateFile(file: File): Promise<{
   valid: boolean;
   error?: string;
 } {
@@ -58,7 +59,17 @@ export function validateFile(file: File): {
     };
   }
 
+  // --- Malware scanning stub (to be replaced with ClamAV/VirusTotal integration) ---
+  // Example: await scanFileForMalware(file)
+  // For now, always pass. Replace with real scan in production.
+  // If malware is detected, return { valid: false, error: 'Malware detected in file.' }
+
   return { valid: true };
+// --- File retention and deletion policy ---
+// Files should be deleted after the retention period (e.g., 30 days)
+// Implement scheduled deletion in backend or storage layer
+// Ensure only the uploading user can access/delete their files (enforce in API)
+
 }
 
 /**
