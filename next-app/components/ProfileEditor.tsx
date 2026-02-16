@@ -36,11 +36,38 @@ export default function ProfileEditor() {
   const [message, setMessage] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
-    const url = URL.createObjectURL(f)
-    setImageSrc(url)
+    // Upload file to S3 via presigned URL
+    try {
+      setLoading(true)
+      setMessage(null)
+      const metaResp = await fetch('/api/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: f.name, contentType: f.type }),
+      })
+      if (!metaResp.ok) throw new Error('Failed to get upload URL')
+      const meta = await metaResp.json()
+      if (meta.error) throw new Error(meta.error)
+      const uploadUrl = meta.url
+      const publicUrl = meta.publicUrl
+
+      const uploadResp = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': f.type },
+        body: f,
+      })
+      if (!uploadResp.ok) throw new Error('Upload failed')
+
+      setImageSrc(publicUrl)
+      setMessage('Image uploaded')
+    } catch (err) {
+      setMessage((err as Error).message || 'Upload error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
