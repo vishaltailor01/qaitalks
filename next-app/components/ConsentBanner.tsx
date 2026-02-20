@@ -1,10 +1,16 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 
 export default function ConsentBanner() {
-  const [accepted, setAccepted] = useState(
-    typeof window !== 'undefined' && localStorage.getItem('cookieConsent') === 'true'
-  );
+  const [accepted, setAccepted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const consent = localStorage.getItem('cookieConsent') === 'true';
+      setAccepted(consent);
+    }
+  }, []);
 
   if (accepted) return null;
 
@@ -16,12 +22,17 @@ export default function ConsentBanner() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 z-50 text-center">
-      We use cookies for authentication and analytics. By using this site, you consent to our use of cookies. See our{' '}
-      <a href="/privacy-policy" className="text-teal-400 underline">Privacy Policy</a>.
+    <div
+      role="region"
+      aria-label="Cookie consent"
+      className="fixed bottom-0 left-0 w-full bg-black text-white p-4 z-50 text-center border-t-4 border-signal-yellow shadow-[0_-4px_0_0_rgba(255,182,0,0.10)] font-sans"
+    >
+      <span className="font-medium">We use cookies for authentication and analytics. By using this site, you consent to our use of cookies.</span> See our{' '}
+      <a href="/privacy-policy" className="text-white underline font-medium hover:text-signal-yellow focus:outline-none focus:ring-2 focus:ring-electric-cyan transition">Privacy Policy</a>.
       <button
         onClick={handleAccept}
-        className="ml-4 bg-teal-400 text-blue-900 border-none px-4 py-2 rounded cursor-pointer"
+        aria-label="Accept cookies"
+        className="ml-4 bg-signal-yellow text-deep-navy border-none px-5 py-2 rounded-lg cursor-pointer font-semibold shadow-sm hover:bg-signal-yellow/90 focus:outline-none focus:ring-2 focus:ring-electric-cyan transition"
       >
         Accept
       </button>
