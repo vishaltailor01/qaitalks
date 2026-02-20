@@ -1,0 +1,37 @@
+{
+  "courses": [
+    {
+      "id": "istqb-ctal-ta-v4-sample",
+      "title": "ISTQB Certified Tester Advanced Level – Test Analyst (CTAL-TA)",
+      "version": "v4-sample",
+      "type": "advanced",
+      "modules": [
+        {
+          "title": "The Test Analyst’s Tasks in the Test Process",
+          "topics": [
+            "Introduction",
+            "Testing in the Software Development Lifecycle",
+            "Test Analysis",
+            "Test Design",
+            "Test Implementation",
+            "Test Execution"
+          ]
+        },
+        {
+          "title": "The Test Analyst’s Tasks in Risk-Based Testing",
+          "topics": ["Introduction", "Risk Identification", "Risk Assessment", "Risk Mitigation"]
+        },
+        {
+          "title": "Test Techniques",
+          "topics": ["Introduction", "Black-Box Test Techniques", "Experience-Based Test Techniques", "Applying the Most Appropriate Technique"]
+        },
+        {
+          "title": "Testing Software Quality Characteristics",
+          "topics": ["Introduction", "Quality Characteristics for Business Domain Testing"]
+        },
+        { "title": "Reviews", "topics": ["Introduction", "Using Checklists in Reviews"] },
+        { "title": "Test Tools and Automation", "topics": ["Introduction", "Keyword-Driven Testing", "Types of Test Tools"] }
+      ]
+    }
+  ]
+}
