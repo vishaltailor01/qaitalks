@@ -7,6 +7,8 @@ import { CVGenerationRequest } from '@/lib/ai/types';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { isRetryableError, logRetryAttempt } from '@/lib/retryLogic';
 import { Config } from '@/lib/config';
+import { auth } from '@/lib/auth';
+import { getPrisma } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -128,10 +130,37 @@ export async function POST(request: NextRequest) {
                   };
                   const validationResults = runValidationPipeline(cvRequest, cvResponse, defaultValidators);
                   console.log('[DEBUG Backend] Validation results:', validationResults);
+
+                  // Save to database (Phase 2)
+                  let dbId = undefined;
+                  try {
+                    const session = await auth();
+                    const prisma = getPrisma();
+
+                    const review = await prisma.cVReview.create({
+                      data: {
+                        userId: session?.user?.id || null,
+                        resume: cvRequest.resume,
+                        jobDescription: cvRequest.jobDescription,
+                        targetRole: cvRequest.targetRole || null,
+                        industry: cvRequest.industry || null,
+                        result: JSON.stringify(cvResponse),
+                        provider: cvResponse.provider,
+                        generationTimeMs: 0, // Placeholder
+                        isPaid: false,
+                      }
+                    });
+                    dbId = review.id;
+                    console.log('[DEBUG Backend] Saved review to DB:', dbId);
+                  } catch (dbError) {
+                    console.error('[DATABASE ERROR] Failed to save review:', dbError);
+                  }
+
                   const finalData = JSON.stringify({
                     type: 'parsed',
                     ...cvResponse,
                     ...validationResults,
+                    id: dbId,
                   });
                   controller.enqueue(
                     encoder.encode(`event: parsed\ndata: ${finalData}\n\n`)

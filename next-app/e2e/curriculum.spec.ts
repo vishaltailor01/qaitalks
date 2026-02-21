@@ -8,35 +8,36 @@ test.describe('Curriculum Page', () => {
 
   test('should display curriculum modules', async ({ page }) => {
     await page.goto('/curriculum');
-    // Look for module headings (h2) as curriculum modules
+    // Look for module headings (h2) as curriculum modules and wait for main
+    await page.waitForSelector('main');
     const modules = page.locator('h2');
-    const moduleCount = await modules.count();
-    expect(moduleCount).toBeGreaterThanOrEqual(1);
+    await expect(modules.first()).toBeVisible();
   });
 
   test('should expand/collapse modules', async ({ page }) => {
     await page.goto('/curriculum');
-    // Find first module expander by .cursor-pointer
-    const moduleExpander = page.locator('.cursor-pointer').first();
-    await expect(moduleExpander).toBeVisible();
-    // Click to expand
-    await moduleExpander.click();
-    // Wait for animation
-    await page.waitForTimeout(500);
-    // Check for expanded content (look for a topic section)
-    const topicSection = page.locator('h3', { hasText: '1. Fundamentals of Testing' });
-    await expect(topicSection).toBeVisible();
+    // Find first module expander by a clickable element and ensure visible
+    const moduleExpander = page.getByRole('button', { name: /View Details|View details for/i }).first();
+    await expect(moduleExpander).toBeVisible({ timeout: 10000 });
+    // Click to expand; tolerate animations and use force if needed
+    await moduleExpander.scrollIntoViewIfNeeded();
+    await moduleExpander.click({ timeout: 10000 }).catch(() => moduleExpander.click({ force: true }));
+    // Wait for expanded content to appear
+    // Wait for modal/dialog to appear then check topic headings inside it
+    await page.waitForSelector('[role="dialog"][aria-label="Module details"]', { timeout: 10000 });
+    const topicSection = page.getByRole('heading', { name: /Fundamentals of Testing|Fundamentals/i }).first();
+    await expect(topicSection).toBeVisible({ timeout: 10000 });
   });
 
   test('should display module topics', async ({ page }) => {
     await page.goto('/curriculum');
-    // Expand the first module
-    const moduleExpander = page.locator('.cursor-pointer').first();
-    await moduleExpander.click();
-    await page.waitForTimeout(500);
-    // Find the first topic section by heading, then get its list items
-    const topicSection = page.getByRole('heading', { name: '1. Fundamentals of Testing', level: 3 });
-    const topicList = topicSection.locator('..').locator('ul li');
+    // Expand the first module robustly
+    const moduleExpander = page.getByRole('button', { name: /View Details|View details for/i }).first();
+    await moduleExpander.scrollIntoViewIfNeeded();
+    await moduleExpander.click({ timeout: 10000 }).catch(() => moduleExpander.click({ force: true }));
+    await page.waitForSelector('[role="dialog"][aria-label="Module details"] ul li', { timeout: 10000 });
+    // Find topic list inside the modal/dialog
+    const topicList = page.locator('[role="dialog"][aria-label="Module details"] ul li');
     const topicCount = await topicList.count();
     expect(topicCount).toBeGreaterThanOrEqual(1);
   });

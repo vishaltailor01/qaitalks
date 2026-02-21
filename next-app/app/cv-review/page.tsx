@@ -1,6 +1,53 @@
-'use client'
+
+"use client";
+
+// Utility to map percent to Tailwind width class
+function percentToWidthClass(percent: number): string {
+  if (percent <= 0) return 'w-0';
+  if (percent >= 100) return 'w-full';
+  // Map to nearest 5% for Tailwind (w-1/12, w-2/12, ..., w-11/12)
+  const twSteps = [8, 17, 25, 33, 42, 50, 58, 67, 75, 83, 92];
+  const twClasses = [
+    'w-1/12', 'w-2/12', 'w-3/12', 'w-4/12', 'w-5/12', 'w-6/12',
+    'w-7/12', 'w-8/12', 'w-9/12', 'w-10/12', 'w-11/12',
+  ];
+  for (let i = 0; i < twSteps.length; i++) {
+    if (percent < twSteps[i]) return twClasses[i];
+  }
+  return 'w-11/12';
+}
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+// Error code to user-friendly message mapping
+function getUserFriendlyError(errorData: any): { message: string; retryable?: boolean } {
+  if (!errorData || typeof errorData !== 'object') return { message: 'An unexpected error occurred. Please try again.' };
+  switch (errorData.code) {
+    case 'RATE_LIMIT_EXCEEDED':
+      return {
+        message: `You’ve hit the free usage limit. Please wait ${errorData.retryAfter ? errorData.retryAfter + ' minutes' : 'a while'} and try again.`,
+        retryable: true,
+      };
+    case 'INVALID_INPUT':
+      return {
+        message: errorData.error || 'Please check your input and try again.',
+      };
+    case 'INTERNAL_ERROR':
+      return {
+        message: 'A server error occurred. Please try again later.',
+        retryable: true,
+      };
+    case 'AI_PROVIDER_ERROR':
+      return {
+        message: 'Our AI is temporarily unavailable. Please try again in a few minutes.',
+        retryable: true,
+      };
+    default:
+      if (errorData.error && typeof errorData.error === 'string') {
+        return { message: errorData.error };
+      }
+      return { message: 'An unexpected error occurred. Please try again.' };
+  }
+}
 import Link from 'next/link'
 import DOMPurify from 'isomorphic-dompurify'
 import ReactMarkdown from 'react-markdown'
@@ -31,6 +78,8 @@ import { getAllRoleTitles, getQARole } from '@/lib/qa-domain/roles'
 import { generateQASkillsReport, type QASkillsReport } from '@/lib/qa-domain/skills-validator'
 import type { QARole } from '@/lib/qa-domain/roles'
 import { useCVStore, useUIStore } from '@/lib/stores'
+import { QuickCheckSummary } from '@/components/sections'
+import { parseQuickCheckData, type QuickCheckData } from '@/lib/ai/quick-check-parser'
 
 // ============================================
 // SAMPLE DATA (Phase 1 - Quick Win #2)
@@ -125,6 +174,7 @@ function unescape(str: string): string {
 
 // Types
 interface CVReviewResult {
+  id?: string
   atsResume: string
   interviewGuide: string
   domainQuestions: string
@@ -139,6 +189,8 @@ interface CVReviewResult {
   cached?: boolean
   contentHash?: string
   cachedAt?: number
+  isPaid?: boolean
+  quickCheck?: QuickCheckData
 }
 
 // Utility to nuclear clean section content
@@ -230,7 +282,43 @@ export default function CVReviewPage() {
   const [lastDraftSave, setLastDraftSave] = useState<Date | null>(null)
   const [showDraftNotice, setShowDraftNotice] = useState(false)
 
-  // Load history and draft on mount (Phase 1)
+  // Ref for auto-scrolling to results
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Success handling for payments
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const success = searchParams.get('success');
+    const id = searchParams.get('id');
+
+    if (success === 'true' && id) {
+      const fetchPaidReview = async () => {
+        setIsLoading(true);
+        setProgress(50);
+        setProgressMessage('Unlocking your Application Pack...');
+        try {
+          const res = await fetch(`/api/cv-review/${id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setResult(data);
+            if (isLocalStorageAvailable()) {
+              saveToHistory(data, resume, jobDescription);
+              setHistory(getHistory());
+            }
+            // Clear URL params
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } catch (err) {
+          console.error('Failed to fetch paid review:', err);
+        } finally {
+          setIsLoading(false);
+          setProgress(0);
+          setProgressMessage('');
+        }
+      };
+      fetchPaidReview();
+    }
+  }, []); // Only on mount
   useEffect(() => {
     if (isLocalStorageAvailable()) {
       setHistory(getHistory());
@@ -391,6 +479,8 @@ export default function CVReviewPage() {
     setProgress(0);
     setProgressMessage('Connecting to AI...');
 
+    const startTime = Date.now(); // Define startTime here
+
     try {
       // Check cache first (Phase 2) - TEMPORARILY DISABLED FOR DEBUGGING
       console.log('[DEBUG] Cache check bypassed - forcing fresh generation');
@@ -443,8 +533,13 @@ export default function CVReviewPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to generate review');
+        const { message, retryable } = getUserFriendlyError(errorData);
+        setError(message);
         setIsLoading(false);
+        // Optionally, show a retry button for retryable errors
+        if (retryable) {
+          setProgressMessage('You can try again in a few minutes.');
+        }
         return;
       }
 
@@ -490,7 +585,7 @@ export default function CVReviewPage() {
               setProgressMessage(
                 `✅ ${data.sectionName} (${receivedSections}/7)`
               );
-              logger.info('streaming', `Section ${data.sectionNumber} received`, {
+              logger.info('streaming', `Section ${data.sectionName} received`, {
                 sectionName: data.sectionName,
                 contentLength: data.content?.length || 0,
               });
@@ -508,6 +603,10 @@ export default function CVReviewPage() {
             case 'parsed':
               // Final parsed sections
               finalResult = data.sections as CVReviewResult;
+              if (data.id) {
+                // Attach the database ID
+                finalResult.id = data.id;
+              }
               setProgress(100);
               setProgressMessage('Complete!');
               break;
@@ -527,8 +626,11 @@ export default function CVReviewPage() {
 
             case 'error':
               const errorPrefix = data.retryable ? '⚠️ Temporary error' : '❌ Error';
-              setError(`${errorPrefix}: ${data.error || 'Streaming failed'}`);
+              setError(getUserFriendlyError({ code: data.code, error: data.error, retryAfter: data.retryAfter }).message);
               setIsLoading(false);
+              if (data.retryable) {
+                setProgressMessage('You can try again in a few minutes.');
+              }
               return;
 
             case 'complete':
@@ -552,7 +654,7 @@ export default function CVReviewPage() {
 
       // Set final result
       if (finalResult) {
-        const cleaned: CVReviewResult = {
+        const parsedResult = {
           ...finalResult,
           atsResume: nuclearCleanSection(finalResult.atsResume),
           interviewGuide: nuclearCleanSection(finalResult.interviewGuide),
@@ -563,15 +665,29 @@ export default function CVReviewPage() {
           sixSecondTest: nuclearCleanSection(finalResult.sixSecondTest),
         };
 
-        setResult(cleaned);
-
         // Generate QA Skills Report
         if (selectedQARole) {
           const report = generateQASkillsReport(resume, selectedQARole);
           setQASkillsReport(report);
         }
 
-        // Save to history and clear draft (Phase 1)
+        // Parse and set final results
+        const cleaned: CVReviewResult = {
+          ...parsedResult,
+          provider: parsedResult.provider || 'gemini',
+          generationTimeMs: Date.now() - startTime,
+          isPaid: false, // Default to free check initially
+        };
+
+        // Extract Quick Check data
+        cleaned.quickCheck = parseQuickCheckData({
+          atsResume: cleaned.atsResume,
+          gapAnalysis: cleaned.gapAnalysis
+        });
+
+        setResult(cleaned);
+
+        // Save to history and clear draft
         if (isLocalStorageAvailable()) {
           saveToHistory(cleaned, resume, jobDescription);
           setHistory(getHistory());
@@ -580,15 +696,20 @@ export default function CVReviewPage() {
           setShowDraftNotice(false);
         }
 
+        // Auto-scroll to results shortly after they arrive
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+
         logger.info('streaming', 'Stream complete', {
           sectionsReceived: receivedSections,
         });
       } else {
-        setError('Failed to parse response');
+        setError('Failed to parse response. Please try again.');
       }
     } catch (error) {
       console.error('Streaming error:', error);
-      setError('Network error during streaming. Please try again.');
+      setError('Network error during streaming. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
       setProgress(0);
@@ -604,6 +725,8 @@ export default function CVReviewPage() {
     setError(null);
     setProgress(0);
     setProgressMessage('Regenerating with AI...');
+
+    const startTime = Date.now(); // Define startTime here
 
     try {
       // Start streaming (bypass cache)
@@ -719,7 +842,18 @@ export default function CVReviewPage() {
 
       // Set final result
       if (finalResult) {
-        setResult(finalResult);
+        const parsedResult = {
+          ...finalResult,
+          atsResume: nuclearCleanSection(finalResult.atsResume),
+          interviewGuide: nuclearCleanSection(finalResult.interviewGuide),
+          domainQuestions: nuclearCleanSection(finalResult.domainQuestions),
+          gapAnalysis: nuclearCleanSection(finalResult.gapAnalysis),
+          optimizedCV: nuclearCleanSection(finalResult.optimizedCV),
+          coverLetter: nuclearCleanSection(finalResult.coverLetter),
+          sixSecondTest: nuclearCleanSection(finalResult.sixSecondTest),
+        };
+
+        setResult(parsedResult);
 
         // Generate QA Skills Report
         if (selectedQARole) {
@@ -729,12 +863,12 @@ export default function CVReviewPage() {
 
         // Update cache with new result
         if (isCacheAvailable()) {
-          cacheResult(resume, jobDescription, finalResult);
+          cacheResult(resume, jobDescription, parsedResult);
         }
 
         // Update history
         if (isLocalStorageAvailable()) {
-          saveToHistory(finalResult, resume, jobDescription);
+          saveToHistory(parsedResult, resume, jobDescription);
           setHistory(getHistory());
         }
 
@@ -747,6 +881,38 @@ export default function CVReviewPage() {
     } catch {
       setError('Network error. Please try again.');
     } finally {
+      setIsLoading(false);
+      setProgress(0);
+      setProgressMessage('');
+    }
+  };
+
+  const handleUnlockPack = async () => {
+    if (!result?.id) {
+      alert('Review session not found. Please try generating again.');
+      return;
+    }
+
+    setIsLoading(true);
+    setProgress(30);
+    setProgressMessage('Redirecting to secure checkout...');
+
+    try {
+      const resp = await fetch('/api/cv-review/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId: result.id }),
+      });
+
+      const data = await resp.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Failed to initiate checkout');
+      }
+    } catch (error: any) {
+      console.error('Unlock error:', error);
+      setError('Failed to connect to payment gateway. Please try again.');
       setIsLoading(false);
       setProgress(0);
       setProgressMessage('');
@@ -1263,7 +1429,7 @@ export default function CVReviewPage() {
                   <div>
                     <label htmlFor="resume" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
                       Your Resume / CV
-                      <span className="text-warning-amber ml-2">*</span>
+                      <span className="text-signal-yellow ml-2">*</span>
                       {/* Tooltip (Phase 1) */}
                       <div className="relative">
                         <button
@@ -1321,7 +1487,7 @@ export default function CVReviewPage() {
                   <div>
                     <label htmlFor="jobDescription" className="block text-lg font-bold text-deep-blueprint mb-3 flex items-center gap-2">
                       Target Job Description
-                      <span className="text-warning-amber ml-2">*</span>
+                      <span className="text-signal-yellow ml-2">*</span>
                       {/* Tooltip (Phase 1) */}
                       <div className="relative">
                         <button
@@ -1394,19 +1560,18 @@ export default function CVReviewPage() {
                         <span>{progressMessage || 'Generating Review...'}</span>
                       </div>
                       {/* Progress Bar (Phase 1) */}
-                      {progress > 0 && (
-                        <div className="w-full bg-slate-400/30 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className="bg-white h-2.5 rounded-full transition-all duration-500 ease-out"
-                            style={{ width: `${Math.round(progress || 0)}%` }}
-                            role="progressbar"
-                            aria-label="CV review generation progress"
-                            aria-valuenow={Math.round(progress || 0)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                          ></div>
-                        </div>
-                      )}
+                      {progress > 0 && (() => {
+                        const progressValue = Number.isFinite(progress) ? Math.round(progress) : 0;
+                        return (
+                          <div className="w-full bg-slate-400/30 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className={`bg-white h-2.5 rounded-full transition-all duration-500 ease-out ${percentToWidthClass(progressValue)}`}
+                              role="progressbar"
+                              aria-label="CV review generation progress"
+                            ></div>
+                          </div>
+                        );
+                      })()}
                       {progress > 0 && (
                         <p className="text-sm opacity-90">{Math.round(progress)}% complete</p>
                       )}
@@ -1427,517 +1592,555 @@ export default function CVReviewPage() {
             </div>
           ) : (
             /* Results Display with Version Panel */
-            <div className="flex flex-col md:flex-row gap-8">
+            <div ref={resultsRef} className="flex flex-col md:flex-row gap-8">
               {/* Main Results */}
               <div className="flex-1 space-y-6 relative">
-                {/* Sticky Section Navigation */}
-                <nav className="hidden md:block sticky top-8 z-30">
-                  <ul className="flex gap-3 mb-6">
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('ats-section')?.scrollIntoView({ behavior: 'smooth' })}>ATS Analysis</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('interview-section')?.scrollIntoView({ behavior: 'smooth' })}>Behavioural Qs</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('domain-section')?.scrollIntoView({ behavior: 'smooth' })}>Technical Qs</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('gap-section')?.scrollIntoView({ behavior: 'smooth' })}>Skills Gap</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cv-section')?.scrollIntoView({ behavior: 'smooth' })}>Optimized CV</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cover-section')?.scrollIntoView({ behavior: 'smooth' })}>Cover Letter</button></li>
-                    <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('six-second-section')?.scrollIntoView({ behavior: 'smooth' })}>6s Test</button></li>
-                  </ul>
-                </nav>
-                {/* Cache Status Banner removed as per request */}
-
-                {/* QA Role Meta & Readiness Score */}
-                {selectedQARole && qaSkillsReport && (
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg border-2 border-blue-200 p-8">
-                    <div className="grid md:grid-cols-3 gap-6 mb-6">
-                      {/* Role Information */}
-                      <div className="md:col-span-2">
-                        <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-2 mb-4">
-                          <span className="text-3xl">🎯</span>
-                          {selectedQARole.title}
-                        </h2>
-                        <div className="space-y-2 text-sm text-slate-700">
-                          <p><strong>Category:</strong> {selectedQARole.category.charAt(0).toUpperCase() + selectedQARole.category.slice(1)}</p>
-                          <p><strong>Experience Level:</strong> {selectedQARole.yearsExperience.min}-{selectedQARole.yearsExperience.max} years</p>
-                          <p><strong>Key Focus:</strong> {selectedQARole.keyResponsibilities[0]}</p>
-                        </div>
-                      </div>
-
-                      {/* Readiness Score */}
-                      <div className="bg-white rounded-xl p-6 text-center border-2 border-blue-300">
-                        <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
-                          {qaSkillsReport.overallReadiness}%
-                        </div>
-                        <p className="text-sm font-semibold text-slate-700 mb-3">Role Readiness</p>
-                        <div className="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.round(qaSkillsReport.overallReadiness || 0)}%` }}
-                            role="progressbar"
-                            aria-label="Role readiness percentage"
-                            aria-valuenow={Math.round(qaSkillsReport.overallReadiness || 0)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Strengths & Gaps */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 border border-green-300 rounded-lg p-4">
-                        <p className="text-sm font-bold text-green-900 mb-2">✅ Your Strengths</p>
-                        <ul className="text-xs text-green-800 space-y-1">
-                          {qaSkillsReport.strengths.map((strength: string, i: number) => (
-                            <li key={i}>• {strength}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
-                        <p className="text-sm font-bold text-amber-900 mb-2">⚠️ Critical Gaps</p>
-                        <ul className="text-xs text-amber-800 space-y-1">
-                          {qaSkillsReport.criticalGaps.map((gap: string, i: number) => (
-                            <li key={i}>• {gap}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                {!result.isPaid && result.quickCheck ? (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <QuickCheckSummary
+                      score={result.quickCheck.score}
+                      missingKeywords={result.quickCheck.missingKeywords}
+                      recommendations={result.quickCheck.recommendations}
+                      onUnlockPack={handleUnlockPack}
+                      isLoading={isLoading}
+                    />
                   </div>
-                )}
+                ) : (
+                  <div className="space-y-6">
+                    {/* Sticky Section Navigation */}
+                    <nav className="hidden md:block sticky top-8 z-30">
+                      <ul className="flex gap-3 mb-6">
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('ats-section')?.scrollIntoView({ behavior: 'smooth' })}>ATS Analysis</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('interview-section')?.scrollIntoView({ behavior: 'smooth' })}>Behavioural Qs</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('domain-section')?.scrollIntoView({ behavior: 'smooth' })}>Technical Qs</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('gap-section')?.scrollIntoView({ behavior: 'smooth' })}>Skills Gap</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cv-section')?.scrollIntoView({ behavior: 'smooth' })}>Optimized CV</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('cover-section')?.scrollIntoView({ behavior: 'smooth' })}>Cover Letter</button></li>
+                        <li><button type="button" className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-blue-100 text-xs font-bold" onClick={() => document.getElementById('six-second-section')?.scrollIntoView({ behavior: 'smooth' })}>6s Test</button></li>
+                      </ul>
+                    </nav>
+                    {/* Cache Status Banner removed as per request */}
 
-                {/* Results Header */}
-                <div id="ats-section" className="bg-white rounded-2xl shadow-xl border-2 border-green-500/20 p-8 mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-3">
-                      <div className="w-1.5 h-8 bg-green-400 rounded-full mr-2" />
-                      ✅ Review Generated Successfully
-                    </h2>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => {
-                          const resultId = `result_${Date.now()}`;
-                          setCurrentResultId(resultId);
-                          setShowFeedbackModal(true);
-                        }}
-                        className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold transition-all shadow-md flex items-center gap-2"
-                      >
-                        ⭐ Rate This Result
-                      </button>
-                      <button
-                        onClick={() => {
-                          setResult(null)
-                          setResume('')
-                          setJobDescription('')
-                        }}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-colors"
-                      >
-                        ← New Review
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-600 mb-3">
-                    {result.cached
-                      ? `Originally generated in ${(result.generationTimeMs / 1000).toFixed(1)}s • Retrieved instantly from cache`
-                      : `Generated in ${(result.generationTimeMs / 1000).toFixed(1)}s using ${result.provider === 'gemini' ? '🚀 Gemini AI' : '🤗 HuggingFace AI'}`
-                    }
-                  </p>
-                  {result.matchedKeywords && result.matchedKeywords.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Terms Identified:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {result.matchedKeywords.map((keyword, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-logic-cyan/10 text-logic-cyan-bright border border-logic-cyan/20 rounded-full text-xs font-semibold"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Strategic Role Analysis & ATS Optimisation */}
-                <div className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 p-8">
-                  <h3 className="text-xl font-bold text-deep-blueprint mb-4 flex items-center gap-2">
-                    <span className="text-2xl">🎯</span>
-                    Strategic Role Analysis & ATS Optimisation
-                  </h3>
-                  <div className="prose max-w-none">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        table: ({ children }) => (
-                          <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                            <table className="min-w-full divide-y divide-slate-200">
-                              {children}
-                            </table>
-                          </div>
-                        ),
-                        thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                        th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                        td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                        p: ({ children }) => {
-                          if (typeof children === 'string' && result.matchedKeywords) {
-                            let text = children;
-                            result.matchedKeywords.forEach(keyword => {
-                              const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                              text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
-                            });
-                            const sanitizedHtml = DOMPurify.sanitize(text);
-                            return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
-                          }
-                          return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
-                        }
-                      }}
-                    >
-                      {result.atsResume}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-
-                {/* Interview Preparation Guide */}
-                <div id="interview-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
-                  <button
-                    onClick={() => toggleSection('interview')}
-                    className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
-                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                        <span className="text-2xl">🎤</span>
-                        Behavioural & Soft Skills Questions (5 STAR Method)
-                      </h3>
-                    </div>
-                    {expandedSections.interview ?
-                      <ChevronUp className="w-6 h-6 text-slate-400" /> :
-                      <ChevronDown className="w-6 h-6 text-slate-400" />
-                    }
-                  </button>
-                  {expandedSections.interview && (
-                    <div className="px-8 pb-8">
-                      <div className="prose max-w-none">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            table: ({ children }) => (
-                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                                <table className="min-w-full divide-y divide-slate-200">
-                                  {children}
-                                </table>
-                              </div>
-                            ),
-                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                            p: ({ children }) => {
-                              if (typeof children === 'string' && result.matchedKeywords) {
-                                let text = children;
-                                result.matchedKeywords.forEach(keyword => {
-                                  const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                                  text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
-                                });
-                                const sanitizedHtml = DOMPurify.sanitize(text);
-                                return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
-                              }
-                              return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
-                            }
-                          }}
-                        >
-                          {DOMPurify.sanitize(result.interviewGuide)}
-                        </ReactMarkdown>
-                      </div>
-
-                      {/* Interview Practice Button removed as per request */}
-                    </div>
-                  )}
-                </div>
-
-                {/* Domain Questions */}
-                <div id="domain-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
-                  <button
-                    onClick={() => toggleSection('domain')}
-                    className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
-                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                        <span className="text-2xl">💡</span>
-                        Domain-Specific Technical Questions (5 Questions)
-                      </h3>
-                    </div>
-                    {expandedSections.domain ?
-                      <ChevronUp className="w-6 h-6 text-slate-400" /> :
-                      <ChevronDown className="w-6 h-6 text-slate-400" />
-                    }
-                  </button>
-                  {expandedSections.domain && (
-                    <div className="px-8 pb-8">
-                      <div className="prose max-w-none">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            table: ({ children }) => (
-                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                                <table className="min-w-full divide-y divide-slate-200">
-                                  {children}
-                                </table>
-                              </div>
-                            ),
-                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                            p: ({ children }) => {
-                              if (typeof children === 'string' && result.matchedKeywords) {
-                                let text = children;
-                                result.matchedKeywords.forEach(keyword => {
-                                  const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                                  text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
-                                });
-                                const sanitizedHtml = DOMPurify.sanitize(text);
-                                return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
-                              }
-                              return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
-                            }
-                          }}
-                        >
-                          {DOMPurify.sanitize(result.domainQuestions)}
-                        </ReactMarkdown>
-                      </div>
-
-                      {/* Technical Practice Button removed as per request */}
-                    </div>
-                  )}
-                </div>
-
-                {/* Skills Gap & Action Plan */}
-                <div id="gap-section" className="bg-white rounded-2xl shadow-xl border-2 border-warning-amber/30 p-8 mt-12">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1.5 h-8 bg-amber-400 rounded-full mr-2" />
-                    <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2"><span className="text-2xl">📊</span>Skills Gap & Action Plan</h3>
-                  </div>
-                  <div className="prose max-w-none">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        table: ({ children }) => (
-                          <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                            <table className="min-w-full divide-y divide-slate-200">
-                              {children}
-                            </table>
-                          </div>
-                        ),
-                        thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                        th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                        td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                      }}
-                    >
-                      {DOMPurify.sanitize(result.gapAnalysis)}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-
-                {/* Optimized CV Section */}
-                {result.optimizedCV && (
-                  <div id="cv-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan/30 p-8 mt-12">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-1.5 h-8 bg-cyan-400 rounded-full mr-2" />
-                      <h3 className="text-xl font-bold text-logic-cyan-bright flex items-center gap-2"><span className="text-2xl">📝</span>The Rewritten UK CV</h3>
-                    </div>
-                    <div className="prose max-w-none mb-6">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          table: ({ children }) => (
-                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                              <table className="min-w-full divide-y divide-slate-200">
-                                {children}
-                              </table>
+                    {/* QA Role Meta & Readiness Score */}
+                    {selectedQARole && qaSkillsReport && (
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg border-2 border-blue-200 p-8">
+                        <div className="grid md:grid-cols-3 gap-6 mb-6">
+                          {/* Role Information */}
+                          <div className="md:col-span-2">
+                            <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-2 mb-4">
+                              <span className="text-3xl">🎯</span>
+                              {selectedQARole.title}
+                            </h2>
+                            <div className="space-y-2 text-sm text-slate-700">
+                              <p><strong>Category:</strong> {selectedQARole.category.charAt(0).toUpperCase() + selectedQARole.category.slice(1)}</p>
+                              <p><strong>Experience Level:</strong> {selectedQARole.yearsExperience.min}-{selectedQARole.yearsExperience.max} years</p>
+                              <p><strong>Key Focus:</strong> {selectedQARole.keyResponsibilities[0]}</p>
                             </div>
-                          ),
-                          thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                          th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                          p: ({ children }) => {
-                            if (typeof children === 'string' && result.matchedKeywords) {
-                              let text = children;
-                              result.matchedKeywords.forEach(keyword => {
-                                const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-                                text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded font-bold">$1</mark>`);
-                              });
-                              const sanitizedHtml = DOMPurify.sanitize(text);
-                              return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
-                            }
-                            return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
-                          }
-                        }}
-                      >
-                        {DOMPurify.sanitize(result.optimizedCV)}
-                      </ReactMarkdown>
+                          </div>
+
+                          {/* Readiness Score */}
+                          <div className="bg-white rounded-xl p-6 text-center border-2 border-blue-300">
+                            <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                              {qaSkillsReport.overallReadiness}%
+                            </div>
+                            <p className="text-sm font-semibold text-slate-700 mb-3">Role Readiness</p>
+                            <div className="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
+                              {(() => {
+                                const readinessValue = Number.isFinite(qaSkillsReport?.overallReadiness) ? Math.round(qaSkillsReport.overallReadiness) : 0;
+                                return (
+                                  <div
+                                    className={`bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-500 ${percentToWidthClass(readinessValue)}`}
+                                    role="progressbar"
+                                    aria-label="Role readiness percentage"
+                                  />
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Strengths & Gaps */}
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                            <p className="text-sm font-bold text-green-900 mb-2">✅ Your Strengths</p>
+                            <ul className="text-xs text-green-800 space-y-1">
+                              {qaSkillsReport.strengths.map((strength: string, i: number) => (
+                                <li key={i}>• {strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
+                            <p className="text-sm font-bold text-amber-900 mb-2">⚠️ Critical Gaps</p>
+                            <ul className="text-xs text-amber-800 space-y-1">
+                              {qaSkillsReport.criticalGaps.map((gap: string, i: number) => (
+                                <li key={i}>• {gap}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Results Header */}
+                    <div id="ats-section" className="bg-white rounded-2xl shadow-xl border-2 border-green-500/20 p-8 mt-8">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold text-deep-blueprint flex items-center gap-3">
+                          <div className="w-1.5 h-8 bg-green-400 rounded-full mr-2" />
+                          ✅ Review Generated Successfully
+                        </h2>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              const resultId = `result_${Date.now()}`;
+                              setCurrentResultId(resultId);
+                              setShowFeedbackModal(true);
+                            }}
+                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-semibold transition-all shadow-md flex items-center gap-2"
+                          >
+                            ⭐ Rate This Result
+                          </button>
+                          <button
+                            onClick={() => {
+                              setResult(null)
+                              setResume('')
+                              setJobDescription('')
+                            }}
+                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-colors"
+                          >
+                            ← New Review
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-600 mb-3">
+                        {result.cached
+                          ? `Originally generated in ${(result.generationTimeMs / 1000).toFixed(1)}s • Retrieved instantly from cache`
+                          : `Generated in ${(result.generationTimeMs / 1000).toFixed(1)}s using ${result.provider === 'gemini' ? '🚀 Gemini AI' : '🤗 HuggingFace AI'}`
+                        }
+                      </p>
+                      {result.matchedKeywords && result.matchedKeywords.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-100">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Terms Identified:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {result.matchedKeywords.map((keyword, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 bg-logic-cyan/10 text-logic-cyan-bright border border-logic-cyan/20 rounded-full text-xs font-semibold"
+                              >
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-4">
+
+                    {/* Strategic Role Analysis & ATS Optimisation */}
+                    <div className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 p-8">
+                      <h3 className="text-xl font-bold text-deep-blueprint mb-4 flex items-center gap-2">
+                        <span className="text-2xl">🎯</span>
+                        Strategic Role Analysis & ATS Optimisation
+                      </h3>
+                      <div className="prose max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                            p: ({ children }) => {
+                              if (typeof children === 'string' && result.matchedKeywords) {
+                                let text = children;
+                                result.matchedKeywords.forEach(keyword => {
+                                  const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                  text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
+                                });
+                                const sanitizedHtml = DOMPurify.sanitize(text);
+                                return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                              }
+                              return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                            }
+                          }}
+                        >
+                          {result.atsResume}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+
+                    {/* Interview Preparation Guide */}
+                    <div id="interview-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
+                      <button
+                        onClick={() => toggleSection('interview')}
+                        className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
+                          <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                            <span className="text-2xl">🎤</span>
+                            Behavioural & Soft Skills Questions (5 STAR Method)
+                          </h3>
+                        </div>
+                        {expandedSections.interview ?
+                          <ChevronUp className="w-6 h-6 text-slate-400" /> :
+                          <ChevronDown className="w-6 h-6 text-slate-400" />
+                        }
+                      </button>
+                      {expandedSections.interview && (
+                        <div className="px-8 pb-8">
+                          <div className="prose max-w-none">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                table: ({ children }) => (
+                                  <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                    <table className="min-w-full divide-y divide-slate-200">
+                                      {children}
+                                    </table>
+                                  </div>
+                                ),
+                                thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                                th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                                td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                                p: ({ children }) => {
+                                  if (typeof children === 'string' && result.matchedKeywords) {
+                                    let text = children;
+                                    result.matchedKeywords.forEach(keyword => {
+                                      const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                      text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
+                                    });
+                                    const sanitizedHtml = DOMPurify.sanitize(text);
+                                    return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                                  }
+                                  return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                                }
+                              }}
+                            >
+                              {DOMPurify.sanitize(result.interviewGuide)}
+                            </ReactMarkdown>
+                          </div>
+
+                          {/* Interview Practice Button removed as per request */}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Domain Questions */}
+                    <div id="domain-section" className="bg-white rounded-2xl shadow-xl border-2 border-deep-blueprint/10 overflow-hidden mt-12">
+                      <button
+                        onClick={() => toggleSection('domain')}
+                        className="w-full p-8 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-1.5 h-8 bg-blue-400 rounded-full mr-2" />
+                          <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                            <span className="text-2xl">💡</span>
+                            Domain-Specific Technical Questions (5 Questions)
+                          </h3>
+                        </div>
+                        {expandedSections.domain ?
+                          <ChevronUp className="w-6 h-6 text-slate-400" /> :
+                          <ChevronDown className="w-6 h-6 text-slate-400" />
+                        }
+                      </button>
+                      {expandedSections.domain && (
+                        <div className="px-8 pb-8">
+                          <div className="prose max-w-none">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                table: ({ children }) => (
+                                  <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                    <table className="min-w-full divide-y divide-slate-200">
+                                      {children}
+                                    </table>
+                                  </div>
+                                ),
+                                thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                                th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                                td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                                p: ({ children }) => {
+                                  if (typeof children === 'string' && result.matchedKeywords) {
+                                    let text = children;
+                                    result.matchedKeywords.forEach(keyword => {
+                                      const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                      text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded">$1</mark>`);
+                                    });
+                                    const sanitizedHtml = DOMPurify.sanitize(text);
+                                    return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                                  }
+                                  return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                                }
+                              }}
+                            >
+                              {DOMPurify.sanitize(result.domainQuestions)}
+                            </ReactMarkdown>
+                          </div>
+
+                          {/* Technical Practice Button removed as per request */}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Skills Gap & Action Plan */}
+                    <div id="gap-section" className="bg-white rounded-2xl shadow-xl border-2 border-signal-yellow/30 p-8 mt-12">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-1.5 h-8 bg-signal-yellow rounded-full mr-2" />
+                        <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2"><span className="text-2xl">📊</span>Skills Gap & Action Plan</h3>
+                      </div>
+                      <div className="prose max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                            th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                            td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                          }}
+                        >
+                          {DOMPurify.sanitize(result.gapAnalysis)}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+
+                    {/* Optimized CV Section */}
+                    {result.optimizedCV && (
+                      <div id="cv-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan/30 p-8 mt-12">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-1.5 h-8 bg-cyan-400 rounded-full mr-2" />
+                          <h3 className="text-xl font-bold text-logic-cyan-bright flex items-center gap-2"><span className="text-2xl">📝</span>The Rewritten UK CV</h3>
+                        </div>
+                        <div className="prose max-w-none mb-6">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                  <table className="min-w-full divide-y divide-slate-200">
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                              th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                              td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                              p: ({ children }) => {
+                                if (typeof children === 'string' && result.matchedKeywords) {
+                                  let text = children;
+                                  result.matchedKeywords.forEach(keyword => {
+                                    const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
+                                    text = text.replace(regex, `<mark class="bg-logic-cyan/20 px-1 rounded font-bold">$1</mark>`);
+                                  });
+                                  const sanitizedHtml = DOMPurify.sanitize(text);
+                                  return <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }} className="mb-4 text-slate-700 leading-relaxed" />;
+                                }
+                                return <p className="mb-4 text-slate-700 leading-relaxed">{children}</p>;
+                              }
+                            }}
+                          >
+                            {DOMPurify.sanitize(result.optimizedCV)}
+                          </ReactMarkdown>
+                        </div>
+                        <div className="flex flex-wrap gap-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Get userId from local/session or context if available
+                                const res = await fetch('/api/application-pack/purchase', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ packType: 'premium' }),
+                                });
+                                const data = await res.json();
+                                if (data.url) {
+                                  window.location.href = data.url;
+                                } else {
+                                  alert(data.error || 'Failed to initiate payment.');
+                                }
+                              } catch (err) {
+                                alert('Failed to initiate payment. Please try again.');
+                              }
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 flex items-center gap-2"
+                          >
+                            💎 Unlock Full Pack (Premium)
+                          </button>
+                          <button
+                            onClick={() => {
+                              try {
+                                exportOptimizedCV(result.optimizedCV!, {
+                                  format: 'professional',
+                                  colorScheme: 'blue',
+                                  includeKeywords: true,
+                                  qaRole: selectedQARole,
+                                  qaFocused: true,
+                                });
+                              } catch (error) {
+                                alert('Failed to export PDF. Please try again.');
+                                console.error('PDF export error:', error);
+                              }
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-600/30 transition-all duration-300 flex items-center gap-2"
+                          >
+                            📥 Download Professional CV (PDF)
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(result.optimizedCV!);
+                              alert('Optimized CV copied to clipboard!');
+                            }}
+                            className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
+                          >
+                            📋 Copy Text
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cover Letter Section */}
+                    {result.coverLetter && (
+                      <div id="cover-section" className="bg-white rounded-2xl shadow-xl border-2 border-purple-400/30 p-8 mt-12">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-1.5 h-8 bg-purple-400 rounded-full mr-2" />
+                          <h3 className="text-xl font-bold text-purple-600 flex items-center gap-2"><span className="text-2xl">✉️</span>Tailored UK Cover Letter</h3>
+                        </div>
+                        <div className="prose max-w-none mb-6">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                  <table className="min-w-full divide-y divide-slate-200">
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
+                              th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
+                              td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
+                            }}
+                          >
+                            {DOMPurify.sanitize(result.coverLetter)}
+                          </ReactMarkdown>
+                        </div>
+                        <div className="flex flex-wrap gap-4">
+                          <button
+                            onClick={() => {
+                              try {
+                                exportCoverLetter(result.coverLetter!, 'purple');
+                              } catch (error) {
+                                alert('Failed to export cover letter PDF.');
+                                console.error('PDF export error:', error);
+                              }
+                            }}
+                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 flex items-center gap-2"
+                          >
+                            📥 Download Cover Letter (PDF)
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(result.coverLetter!);
+                              alert('Cover letter copied to clipboard!');
+                            }}
+                            className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                          >
+                            📋 Copy Text
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Six-Second Recruiter Test Section */}
+                    {result.sixSecondTest && (
+                      <div id="six-second-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan-bright/30 p-8 mt-12 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                          <span className="text-6xl text-logic-cyan-bright">⏱️</span>
+                        </div>
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-1.5 h-8 bg-logic-cyan-bright rounded-full mr-2" />
+                          <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
+                            <span className="text-2xl">⏳</span>
+                            Six-Second Recruiter Test
+                          </h3>
+                        </div>
+                        <div className="prose max-w-none bg-slate-50/50 p-6 rounded-xl border border-slate-100">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
+                                  <table className="min-w-full divide-y divide-slate-200">
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children }) => <thead className="bg-slate-100/50">{children}</thead>,
+                              th: ({ children }) => <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{children}</th>,
+                              td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 leading-relaxed border-t border-slate-100">{children}</td>,
+                            }}
+                          >
+                            {DOMPurify.sanitize(result.sixSecondTest)}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-4 mt-8">
+                      {/* Back to Top Button */}
+                      {showTop && (
+                        <button
+                          type="button"
+                          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                          className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transition-all text-lg font-bold"
+                          aria-label="Back to Top"
+                        >
+                          ⬆ Back to Top
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           try {
-                            exportOptimizedCV(result.optimizedCV!, {
-                              format: 'professional',
-                              colorScheme: 'blue',
-                              includeKeywords: true,
-                              qaRole: selectedQARole,
-                              qaFocused: true,
-                            });
+                            exportToPDF(result);
                           } catch (error) {
-                            alert('Failed to export PDF. Please try again.');
+                            alert('Failed to export PDF. Please try again or use the print option.');
                             console.error('PDF export error:', error);
                           }
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-600/30 transition-all duration-300 flex items-center gap-2"
+                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
                       >
-                        📥 Download Professional CV (PDF)
+                        📥 Download PDF
+                      </button>
+                      <button
+                        onClick={() => window.print()}
+                        className="px-6 py-3 bg-deep-blueprint text-white rounded-lg font-semibold hover:bg-blue-900 transition-colors"
+                      >
+                        🖨️ Print Results
                       </button>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(result.optimizedCV!);
-                          alert('Optimized CV copied to clipboard!');
+                          const text = `ATS Resume:\n${result.atsResume}\n\nInterview Guide:\n${result.interviewGuide}\n\nDomain Questions:\n${result.domainQuestions}\n\nGap Analysis:\n${result.gapAnalysis}\n\nSix-Second Recruiter Test:\n${result.sixSecondTest}`
+                          navigator.clipboard.writeText(text)
+                          alert('Results copied to clipboard!')
                         }}
                         className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
                       >
-                        📋 Copy Text
+                        📋 Copy All Results
                       </button>
                     </div>
                   </div>
                 )}
-
-                {/* Cover Letter Section */}
-                {result.coverLetter && (
-                  <div id="cover-section" className="bg-white rounded-2xl shadow-xl border-2 border-purple-400/30 p-8 mt-12">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-1.5 h-8 bg-purple-400 rounded-full mr-2" />
-                      <h3 className="text-xl font-bold text-purple-600 flex items-center gap-2"><span className="text-2xl">✉️</span>Tailored UK Cover Letter</h3>
-                    </div>
-                    <div className="prose max-w-none mb-6">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          table: ({ children }) => (
-                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                              <table className="min-w-full divide-y divide-slate-200">
-                                {children}
-                              </table>
-                            </div>
-                          ),
-                          thead: ({ children }) => <thead className="bg-slate-50">{children}</thead>,
-                          th: ({ children }) => <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 border-t border-slate-100">{children}</td>,
-                        }}
-                      >
-                        {DOMPurify.sanitize(result.coverLetter)}
-                      </ReactMarkdown>
-                    </div>
-                    <div className="flex flex-wrap gap-4">
-                      <button
-                        onClick={() => {
-                          try {
-                            exportCoverLetter(result.coverLetter!, 'purple');
-                          } catch (error) {
-                            alert('Failed to export cover letter PDF.');
-                            console.error('PDF export error:', error);
-                          }
-                        }}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-600/30 transition-all duration-300 flex items-center gap-2"
-                      >
-                        📥 Download Cover Letter (PDF)
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(result.coverLetter!);
-                          alert('Cover letter copied to clipboard!');
-                        }}
-                        className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-                      >
-                        📋 Copy Text
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Six-Second Recruiter Test Section */}
-                {result.sixSecondTest && (
-                  <div id="six-second-section" className="bg-white rounded-2xl shadow-xl border-2 border-logic-cyan-bright/30 p-8 mt-12 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <span className="text-6xl text-logic-cyan-bright">⏱️</span>
-                    </div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-1.5 h-8 bg-logic-cyan-bright rounded-full mr-2" />
-                      <h3 className="text-xl font-bold text-deep-blueprint flex items-center gap-2">
-                        <span className="text-2xl">⏳</span>
-                        Six-Second Recruiter Test
-                      </h3>
-                    </div>
-                    <div className="prose max-w-none bg-slate-50/50 p-6 rounded-xl border border-slate-100">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          table: ({ children }) => (
-                            <div className="overflow-x-auto my-6 rounded-xl border-2 border-slate-200">
-                              <table className="min-w-full divide-y divide-slate-200">
-                                {children}
-                              </table>
-                            </div>
-                          ),
-                          thead: ({ children }) => <thead className="bg-slate-100/50">{children}</thead>,
-                          th: ({ children }) => <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{children}</th>,
-                          td: ({ children }) => <td className="px-6 py-4 text-sm text-slate-700 leading-relaxed border-t border-slate-100">{children}</td>,
-                        }}
-                      >
-                        {DOMPurify.sanitize(result.sixSecondTest)}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-4 mt-8">
-                  {/* Back to Top Button */}
-                  {showTop && (
-                    <button
-                      type="button"
-                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                      className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 rounded-full shadow-lg hover:scale-105 transition-all text-lg font-bold"
-                      aria-label="Back to Top"
-                    >
-                      ⬆ Back to Top
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      try {
-                        exportToPDF(result);
-                      } catch (error) {
-                        alert('Failed to export PDF. Please try again or use the print option.');
-                        console.error('PDF export error:', error);
-                      }
-                    }}
-                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-600/30 transition-all duration-300"
-                  >
-                    📥 Download PDF
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="px-6 py-3 bg-deep-blueprint text-white rounded-lg font-semibold hover:bg-blue-900 transition-colors"
-                  >
-                    🖨️ Print Results
-                  </button>
-                  <button
-                    onClick={() => {
-                      const text = `ATS Resume:\n${result.atsResume}\n\nInterview Guide:\n${result.interviewGuide}\n\nDomain Questions:\n${result.domainQuestions}\n\nGap Analysis:\n${result.gapAnalysis}\n\nSix-Second Recruiter Test:\n${result.sixSecondTest}`
-                      navigator.clipboard.writeText(text)
-                      alert('Results copied to clipboard!')
-                    }}
-                    className="px-6 py-3 bg-logic-cyan text-white rounded-lg font-semibold hover:bg-logic-cyan-bright transition-colors"
-                  >
-                    📋 Copy All Results
-                  </button>
-                </div>
               </div>
               {/* Version History Sidebar */}
               <div className="w-full md:w-80 shrink-0">

@@ -1,4 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Indie+Flower&display=swap');
+/* --- QAi Talks Stitch Design System --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* Custom height utility for 8px */
+.h-8px {
+  height: 8px;
+}
+/* Modern professional style utilities */
+
+/* Note: legacy `font-hand` removed — use `font-primary` instead */
+
+.font-primary {
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Subtle accent highlight for inline emphasis */
+.marker-highlight {
+  background: linear-gradient(90deg, rgba(2,132,199,0.12) 60%, transparent 100%);
+  border-radius: 6px;
+  padding-left: 0.18em;
+  padding-right: 0.18em;
+}
+
+/* Card / panel border used across components (replaces doodle-border visuals) */
+.doodle-border {
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgba(10,37,64,0.06);
+  box-shadow: 0 6px 18px rgba(11,30,55,0.06);
+  border-radius: 8px;
+}
+
+.border-doodle-blueprint {
+  border-color: var(--deep-blueprint) !important;
+}
+
+/* Accent border kept for signal use, but toned down */
+.border-signal-yellow {
+  border-color: var(--signal-yellow) !important;
+}
 /* Progress bar width utilities (width-0 to width-100) */
 .width-0 { width: 0%; }
 .width-1 { width: 1%; }
@@ -35,21 +74,32 @@
 @tailwind utilities;
 
 :root {
-  --obsidian-navy: #001B44;
-  --ai-amber: #FFB700;
-  --academy-teal: #00B4D8;
-  --bg-cloud: #F8FAFC;
+  --obsidian-navy: #00112a; /* darkened for better contrast */
+  --ai-amber: #b38600;    /* darkened yellow for contrast */
+  --academy-teal: #00394a; /* darkened for better contrast */
+  --bg-cloud: #F4F6FA;    /* slightly darker for contrast */
   --surface-white: #FFFFFF;
-  --text-slate: #1E293B;
+  --text-slate: #1A2233;  /* slightly darker for contrast */
   --growth-green: #22C55E;
-  --purple-accent: #8B5CF6;
+  --purple-accent: #3F2AA8;
 
   --deep-blueprint: var(--obsidian-navy);
   --logic-cyan: var(--academy-teal);
-  --logic-cyan-bright: #00D4FF;
-  --warning-amber: var(--ai-amber);
+  --logic-cyan-bright: #005f7a; /* darkened for contrast */
+  --warning-amber: var(--signal-yellow);
+  --stitch-round: 1rem;
+  --stitch-round-lg: 1.5rem;
+  --stitch-round-xl: 2rem;
   --grid-major: 16px;
   --grid-size: 32px;
+
+  /* New Stitch design tokens */
+  --paper-white: #E9ECF3; /* slightly darker for contrast */
+  --deep-navy: #07182b;   /* darkened for contrast */
+  --electric-cyan: #0090b8; /* darkened for contrast */
+  --signal-yellow: #b38600; /* darkened yellow for contrast */
+  --corner-radius: 2px;
+  --base-unit: 8px;
 }
 
 * {
@@ -65,6 +115,11 @@ html {
 body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
+}
+
+/* Set canvas background to paper white from the design spec */
+body {
+  background-color: var(--paper-white);
 }
 
 code, pre {
@@ -100,6 +155,24 @@ code, pre {
   background-size: 32px 32px;
   animation: gridMove 20s linear infinite;
   z-index: -1;
+}
+
+/* Accessibility helpers */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+.skip-to-content:focus {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 9999;
+  transform: none;
+  clip: auto;
 }
 
 .section-container {

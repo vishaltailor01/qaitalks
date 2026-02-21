@@ -8,31 +8,7 @@ const protectedRoutes = [
 ];
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if the route starts with /api/auth (always allow)
-  if (pathname.startsWith('/api/auth')) {
-    return NextResponse.next();
-  }
-  
-  // Check if route is protected
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  );
-  
-  if (isProtectedRoute) {
-    // Check for session token (simplified check)
-    const sessionToken = request.cookies.get('next-auth.session-token') || 
-                        request.cookies.get('__Secure-next-auth.session-token');
-    
-    if (!sessionToken) {
-      // Redirect to signin page with callback URL
-      const signInUrl = new URL('/auth/signin', request.url);
-      signInUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(signInUrl);
-    }
-  }
-  
+  // No-op: all auth is handled in server components/pages
   return NextResponse.next();
 }
 

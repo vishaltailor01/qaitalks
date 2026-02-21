@@ -15,16 +15,13 @@ test.describe('Home Page', () => {
   test('should have navigation links', async ({ page }) => {
     await page.goto('/');
     const navbar = page.locator('nav');
-    await expect(navbar).toBeVisible();
+    await page.waitForSelector('nav');
+    await expect(navbar.first()).toBeVisible();
     
-    // Check for main navigation items
-    const aboutLink = page.locator('a[href="/about"]');
-    const blogLink = page.locator('a[href="/blog"]');
-    const curriculumLink = page.locator('a[href="/curriculum"]');
-    
-    await expect(aboutLink).toBeVisible();
-    await expect(blogLink).toBeVisible();
-    await expect(curriculumLink).toBeVisible();
+    // Check for main navigation items (tolerant presence)
+    await expect(page.locator('a[href="/about"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/blog"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/curriculum"]').first()).toBeVisible();
   });
 
   test('should navigate to About page', async ({ page }) => {
@@ -56,7 +53,6 @@ test.describe('Home Page', () => {
     // Check that all text is readable (color contrast)
     const mainContent = page.locator('main');
     const textElements = mainContent.locator('p, h1, h2, h3, a');
-    const count = await textElements.count();
-    expect(count).toBeGreaterThan(0);
+    await expect(textElements.first()).toBeVisible();
   });
 });

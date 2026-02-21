@@ -22,11 +22,8 @@ interface InterviewPracticeProps {
   onClose: () => void;
 }
 
-export default function InterviewPractice({
-  questions: rawQuestions,
-  type,
-  onClose,
-}: InterviewPracticeProps) {
+export default function InterviewPractice({ questions: rawQuestions, type, onClose }: InterviewPracticeProps) {
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>(
     rawQuestions.map((q, i) => ({
@@ -43,6 +40,7 @@ export default function InterviewPractice({
 
   const currentQuestion = questions[currentIndex];
   const progress = (questions.filter((q) => q.answered).length / questions.length) * 100;
+  const progressValue = Number.isFinite(progress) ? Math.round(progress) : 0;
 
   // Timer effect
   useEffect(() => {
@@ -160,12 +158,12 @@ export default function InterviewPractice({
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full my-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-8 rounded-t-2xl">
-          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4">
             <h3 className="text-2xl font-black flex items-center gap-2">
               <span>🎯</span>
               Interview Practice Mode
             </h3>
-            <button onClick={onClose} className="text-white hover:text-gray-200 text-xl">
+            <button onClick={onClose} className="text-white hover:text-logic-cyan text-xl font-primary marker-highlight transition-all rounded-full">
               ✕
             </button>
           </div>
@@ -178,16 +176,16 @@ export default function InterviewPractice({
               </span>
               <span>{completedQuestions} Completed</span>
             </div>
-            <div className="w-full bg-purple-800 rounded-full h-3">
+            <div className="w-full bg-purple-800 rounded-full h-3 relative">
               <div
-                className="bg-white rounded-full h-3 transition-all duration-300 absolute origin-left header-progress-bar"
-                style={{ width: `${Math.max(0, Math.min(100, Math.round(progress)))}%` }}
+                className={`bg-white rounded-full h-3 transition-all duration-300 absolute origin-left header-progress-bar width-${Math.max(0, Math.min(100, Math.round(progress)))}`}
                 role="progressbar"
                 aria-label="Question progress bar"
-                aria-valuenow={Number.isFinite(progress) ? Math.round(progress) : 0}
+                aria-valuenow={Number(progressValue)}
                 aria-valuemin={0}
                 aria-valuemax={100}
-              />
+              >
+              </div>
             </div>
           </div>
 
@@ -257,7 +255,7 @@ export default function InterviewPractice({
                 <button
                   onClick={handleSubmitAnswer}
                   disabled={isAnalyzing || !currentAnswer.trim()}
-                  className={`flex-1 py-4 rounded-lg font-bold text-white transition-all ${
+                  className={`flex-1 py-4 rounded-lg font-bold text-white font-primary marker-highlight transition-all ${
                     isAnalyzing || !currentAnswer.trim()
                       ? 'bg-slate-300 cursor-not-allowed'
                       : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:shadow-lg'
@@ -268,7 +266,7 @@ export default function InterviewPractice({
                 <button
                   onClick={handleSkipQuestion}
                   disabled={isAnalyzing}
-                  className="px-6 py-4 border-2 border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
+                  className="px-6 py-4 border-2 border-slate-300 text-slate-700 rounded-lg font-semibold font-primary marker-highlight hover:bg-slate-50 transition-colors"
                 >
                   ⏭️ Skip
                 </button>
@@ -343,18 +341,18 @@ export default function InterviewPractice({
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-4">
+                    <div className="flex gap-4">
                   {currentIndex < questions.length - 1 ? (
                     <button
                       onClick={handleNextQuestion}
-                      className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-bold hover:shadow-lg transition-all"
+                      className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-bold font-primary marker-highlight hover:shadow-lg transition-all"
                     >
                       Next Question →
                     </button>
                   ) : (
                     <button
                       onClick={onClose}
-                      className="flex-1 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold hover:shadow-lg transition-all"
+                      className="flex-1 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold font-primary marker-highlight hover:shadow-lg transition-all"
                     >
                       🎉 Complete Practice Session
                     </button>

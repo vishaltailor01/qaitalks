@@ -15,6 +15,13 @@
 			"command": "cd next-app; npm run dev",
 			"isBackground": true,
 			"group": "build"
+		},
+		{
+			"label": "Install Stripe SDK",
+			"type": "shell",
+			"command": "cd next-app && npm install stripe",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

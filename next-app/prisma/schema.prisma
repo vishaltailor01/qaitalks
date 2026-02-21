@@ -1,3 +1,72 @@
+// Micro-Credential Courses & Badges
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  duration    Int      // minutes
+  price       Decimal  // £19.99
+  modules     Module[]
+  badges      Badge[] @relation("CourseBadges")
+}
+
+model Module {
+  id           String   @id @default(cuid())
+  courseId     String
+  order        Int
+  title        String
+  videoUrl     String
+  readingHtml  String
+  quizId       String
+  course       Course   @relation(fields: [courseId], references: [id])
+  quizzes      Quiz[]
+}
+
+model Quiz {
+  id        String    @id @default(cuid())
+  moduleId  String
+  questions Question[]
+  module    Module    @relation(fields: [moduleId], references: [id])
+}
+
+model Question {
+  id       String @id @default(cuid())
+  quizId   String
+  text     String
+  type     String // "mcq"
+  options  Json   // ["A", "B", "C", "D"]
+  correct  Int    // 0-3 index
+  explain  String
+  quiz     Quiz   @relation(fields: [quizId], references: [id])
+}
+
+model UserProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  moduleId  String?
+  status    String   // "not_started", "in_progress", "completed"
+  quizScore Decimal?
+}
+
+model ExamAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  score     Decimal
+  passed    Boolean
+  answers   Json     // user responses
+  createdAt DateTime @default(now())
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String
+  awardedAt   DateTime @default(now())
+  verifiedUrl String?  // Public verification link
+  course      Course   @relation(fields: [courseId], references: [id], name: "CourseBadges")
+}
 // Versioned CV Review Output
 model CVReviewVersion {
   id        String   @id @default(cuid())
@@ -93,6 +162,8 @@ model CVReview {
   provider         String // 'gemini' | 'huggingface'
   generationTimeMs Int // Time taken to generate
   cached           Boolean  @default(false)
+  isPaid           Boolean  @default(false)
+  stripeSessionId  String?
   createdAt        DateTime @default(now())
 
   user     User?             @relation(fields: [userId], references: [id], onDelete: SetNull)

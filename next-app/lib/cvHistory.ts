@@ -2,6 +2,7 @@
 // Saves last 5 reviews for user convenience
 
 interface CVReviewResult {
+  id?: string;
   atsResume: string;
   interviewGuide: string;
   domainQuestions: string;
@@ -12,6 +13,7 @@ interface CVReviewResult {
   matchedKeywords?: string[];
   provider: 'gemini' | 'huggingface';
   generationTimeMs: number;
+  isPaid?: boolean;
 }
 
 export interface CVReviewHistoryItem {
@@ -20,6 +22,7 @@ export interface CVReviewHistoryItem {
   result: CVReviewResult;
   resumePreview: string; // First 100 chars of resume
   jobPreview: string; // First 50 chars of job description
+  isPaid?: boolean;
 }
 
 const STORAGE_KEY = 'qaitalks_cv_review_history';
@@ -40,11 +43,12 @@ export function saveToHistory(
   try {
     // Create history item
     const historyItem: CVReviewHistoryItem = {
-      id: generateId(),
+      id: result.id || generateId(),
       timestamp: Date.now(),
       result,
       resumePreview: resumeText.substring(0, 100).trim(),
       jobPreview: jobDescriptionText.substring(0, 50).trim(),
+      isPaid: result.isPaid,
     };
 
     // Get existing history

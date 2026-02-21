@@ -1,8 +1,10 @@
 // CV Review state management with Zustand
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { QuickCheckData } from '@/lib/ai/quick-check-parser';
 
 interface CVReviewResult {
+  id?: string;
   atsResume: string;
   interviewGuide: string;
   domainQuestions: string;
@@ -16,6 +18,8 @@ interface CVReviewResult {
   cached?: boolean;
   contentHash?: string;
   cachedAt?: number;
+  isPaid?: boolean;
+  quickCheck?: QuickCheckData;
 }
 
 interface CVState {

@@ -8,20 +8,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Blueprint Design System Colors
-        'deep-blueprint': '#001B44',      // Navy - primary brand color
-        'logic-cyan': '#00B4D8',          // Cyan - accent/highlight
-        'logic-cyan-bright': '#00D4FF',   // Bright cyan - hover states
-        'warning-amber': '#FFB700',       // Amber - accents & warnings
-        'growth-green': '#22C55E',        // Green - success states
-        'purple-accent': '#8B5CF6',       // Purple - secondary accent
-        'bg-cloud': '#F8FAFC',            // Cloud white - light backgrounds
+        // --- QAi Talks Stitch Design System ---
+        'paper-white': '#F0F0FC',         // Background / canvas
+        'deep-navy': '#0A2540',           // Ink / structured text
+        'deep-blueprint': '#001B44',      // Legacy deep blueprint/navy
+        'electric-cyan': '#00C4FF',       // Accent / active states
+        'logic-cyan': '#005F6B',          // Accent (legacy)
+        'logic-cyan-bright': '#006A86',   // Bright cyan - hover states
+        'signal-yellow': '#FFB600',       // Alerts / caution areas
+        'warning-amber': '#FFB600',       // Amber - main accent (legacy, alias to signal-yellow)
+        'growth-green': '#22C55E',        // Green - success
+        'purple-accent': '#3F2AA8',       // Purple - secondary accent
+        'bg-cloud': '#F8FAFC',            // Cloud white - backgrounds
         'text-slate': '#1E293B',          // Slate - body text
+        // Add more Stitch palette if needed
       },
       fontFamily: {
+        // Inter is the Stitch default
         primary: ["'Inter'", 'sans-serif'],
         mono: ["'JetBrains Mono'", 'monospace'],
         hand: ["'Indie Flower'", 'cursive'],
+      },
+      borderRadius: {
+        // Stitch uses a mix of modest and legacy roundness
+        'sm': '2px',         // Design spec corner radius
+        'stitch': '1rem',    // legacy roundness 16px
+        'stitch-lg': '1.5rem', // 24px
+        'stitch-xl': '2rem',   // 32px
       },
       spacing: {
         'grid': '16px',

@@ -29,9 +29,16 @@
 - GitHub Actions workflows for all checks
 
 ## Extensibility
-- Modular lib/ structure for business logic
+- Modular apps/web/lib/ structure for business logic
 - All API input/output types enforced
 - Ready for Python/FastAPI migration (planned)
 
+## Design System & UI Consistency
+
+- All user-facing components are refactored to use a unified design system (see `docs/DESIGN_SYSTEM.md`).
+- Design tokens (colors, font, border radius) are defined in `tailwind.config.ts` and global CSS.
+- Accessibility (WCAG 2.1 AA) and responsive design are enforced across all UI.
+- All new components must follow the Stitch-inspired design patterns for color, typography, and interaction.
+
 ---
-See `docs/PROJECT_STRUCTURE.md` and `docs/ways-of-work/plan/` for more details.
+See `docs/PROJECT_STRUCTURE.md`, `docs/DESIGN_SYSTEM.md`, and `docs/ways-of-work/plan/` for more details.

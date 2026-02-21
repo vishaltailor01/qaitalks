@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { z } from 'zod';
-import { generateCVReview } from '../../../../lib/ai';
+import { runCVReviewLangGraph } from '../../../../lib/ai/langgraph-adapter';
+import { env } from 'process';
 import { checkRateLimit, getClientIp } from '../../../../lib/rateLimit';
 import { sanitizeCVReviewInput, sanitizeOutput } from '../../../../lib/sanitize';
 import { logger, metricsStore, generateRequestId } from '../../../../lib/monitoring';
 import { hashInput } from '../../../../lib/resultCache';
 
-export async function POST(req: NextRequest) {
   const startTime = Date.now();
   const requestId = generateRequestId();
   const clientIp = getClientIp(req);
@@ -155,19 +155,82 @@ export async function POST(req: NextRequest) {
       bypassCache,
     });
 
+    // 6. Use LangGraph adapter for streaming AI orchestration
     const aiStartTime = Date.now();
-    const result = await generateCVReview(sanitizationResult.sanitized!);
-    const aiGenerationTimeMs = Date.now() - aiStartTime;
+    let provider = 'unknown';
+    let cacheStatus = 'MISS';
+    let lastResult = null;
+    let errorResult = null;
+    // Cloudflare D1 DB instance (assume available as env.D1 or globalThis.D1)
+    // Replace with actual D1 binding as per your deployment (e.g., from context, global, or request)
+    const db = globalThis.D1 || (env.D1 ? env.D1 : undefined);
+    const stream = runCVReviewLangGraph({
+      resume: sanitizationResult.sanitized!.resume,
+      jobDescription: sanitizationResult.sanitized!.jobDescription,
+      userParams: {},
+      db,
+    });
 
-    // 5. Check for errors from AI service
-    if ('error' in result) {
-      const responseTimeMs = Date.now() - startTime;
-      
-      logger.error('ai_provider', 'AI generation failed', new Error(result.error), {
+    // Stream response chunks as NDJSON (newline-delimited JSON)
+    const encoder = new TextEncoder();
+    const streamBody = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            if (chunk.error) {
+              errorResult = chunk;
+              controller.enqueue(encoder.encode(JSON.stringify(chunk) + '\n'));
+              break;
+            }
+            lastResult = chunk;
+            if (chunk.source === 'cache') cacheStatus = 'HIT';
+            if (chunk.source === 'gemini' || chunk.source === 'huggingface') provider = chunk.source;
+            controller.enqueue(encoder.encode(JSON.stringify(chunk) + '\n'));
+          }
+        } catch (err) {
+          errorResult = { error: 'Streaming error', details: err?.message };
+          controller.enqueue(encoder.encode(JSON.stringify(errorResult) + '\n'));
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    // Track metrics after streaming
+    const aiGenerationTimeMs = Date.now() - aiStartTime;
+    const responseTimeMs = Date.now() - startTime;
+    if (lastResult && !lastResult.error) {
+      logger.trackAIProvider({
+        provider: provider as any,
+        success: true,
+        generationTimeMs: aiGenerationTimeMs,
+        promptLength: sanitizationResult.sanitized!.resume.length + sanitizationResult.sanitized!.jobDescription.length,
+        responseLength: JSON.stringify(lastResult).length,
+        timestamp: new Date().toISOString(),
+      });
+      metricsStore.addAPIMetrics({
+        requestId,
+        endpoint: '/api/cv-review/generate',
+        method: 'POST',
+        statusCode: 200,
+        responseTimeMs,
+        aiProvider: provider,
+        success: true,
+        ip: clientIp,
+        userAgent,
+      });
+      logger.info('api', 'CV Review request completed successfully', {
+        requestId,
+        responseTimeMs,
+        aiProvider: provider,
+        aiGenerationTimeMs,
+        cacheStatus,
+      });
+    } else if (errorResult) {
+      logger.error('ai_provider', 'AI generation failed', new Error(errorResult.error), {
         requestId,
         generationTimeMs: aiGenerationTimeMs,
       });
-
       metricsStore.addAPIMetrics({
         requestId,
         endpoint: '/api/cv-review/generate',
@@ -177,69 +240,21 @@ export async function POST(req: NextRequest) {
         success: false,
         ip: clientIp,
         userAgent,
-        error: result.error,
-      });
-
-      return NextResponse.json(result, { 
-        status: 503,
-        headers: { 'X-Request-Id': requestId },
+        error: errorResult.error,
       });
     }
 
-    // Track AI provider metrics
-    logger.trackAIProvider({
-      provider: result.provider,
-      success: true,
-      generationTimeMs: result.generationTimeMs,
-      promptLength: sanitizationResult.sanitized!.resume.length + sanitizationResult.sanitized!.jobDescription.length,
-      responseLength: JSON.stringify(result).length,
-      timestamp: new Date().toISOString(),
-    });
-
-    // 6. Sanitize output (prevents XSS in AI responses)
-    const sanitizedResult = {
-      ...result,
-      atsResume: sanitizeOutput(result.atsResume),
-      interviewGuide: sanitizeOutput(result.interviewGuide),
-      domainQuestions: sanitizeOutput(result.domainQuestions),
-      gapAnalysis: sanitizeOutput(result.gapAnalysis),
-      optimizedCV: sanitizeOutput(result.optimizedCV),
-      coverLetter: sanitizeOutput(result.coverLetter),
-      // Add cache metadata (Phase 2)
-      cached: false,
-      contentHash,
-    };
-
-    const responseTimeMs = Date.now() - startTime;
-
-    // Track successful request metrics
-    metricsStore.addAPIMetrics({
-      requestId,
-      endpoint: '/api/cv-review/generate',
-      method: 'POST',
-      statusCode: 200,
-      responseTimeMs,
-      aiProvider: result.provider,
-      success: true,
-      ip: clientIp,
-      userAgent,
-    });
-
-    logger.info('api', 'CV Review request completed successfully', {
-      requestId,
-      responseTimeMs,
-      aiProvider: result.provider,
-      aiGenerationTimeMs,
-    });
-
-    // 7. Return successful response with rate limit headers
-    return NextResponse.json(sanitizedResult, {
+    // Return streaming response with headers
+    return new Response(streamBody, {
+      status: lastResult && !lastResult.error ? 200 : 503,
       headers: {
+        'Content-Type': 'application/x-ndjson',
         'X-RateLimit-Limit': '10',
         'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
         'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
         'X-Request-Id': requestId,
-        'X-Cache-Status': 'MISS', // Phase 2: Cache miss, generated fresh
+        'X-Cache-Status': cacheStatus,
+        'X-AI-Provider': provider,
       },
     });
   } catch (error) {

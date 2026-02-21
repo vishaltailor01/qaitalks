@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 const fs = require('fs/promises');
 const path = require('path');
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+const pdfLib = require('pdf-parse');
+const pdf = pdfLib.default || pdfLib;
 
 async function downloadToBuffer(url) {
   console.log('Downloading', url);
@@ -12,16 +13,8 @@ async function downloadToBuffer(url) {
 }
 
 async function extractTextFromPdfBuffer(buffer) {
-  const loadingTask = pdfjsLib.getDocument({ data: buffer });
-  const doc = await loadingTask.promise;
-  let out = '';
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
-    const strings = content.items.map((it) => it.str);
-    out += strings.join(' ') + '\n';
-  }
-  return out;
+  const data = await pdf(buffer);
+  return data.text || '';
 }
 
 async function ensureDir(dir) {

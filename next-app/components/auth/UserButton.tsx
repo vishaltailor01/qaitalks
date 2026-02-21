@@ -29,9 +29,9 @@ export default function UserButton() {
       .catch(() => setLoading(false))
   }, [])
 
-  if (loading) {
+    if (loading) {
     return (
-      <div className="w-8 h-8 rounded-full bg-slate-200 animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-signal-yellow animate-pulse" />
     )
   }
 
@@ -39,7 +39,7 @@ export default function UserButton() {
     return (
       <Link
         href="/auth/signin"
-        className="px-4 py-2 bg-deep-blueprint text-white rounded-lg font-semibold hover:bg-deep-blueprint/90 transition-all duration-300"
+        className="px-4 py-2 bg-signal-yellow text-deep-navy rounded-md font-primary font-semibold hover:bg-signal-yellow/90 transition-all duration-300 shadow"
       >
         Sign In
       </Link>
@@ -47,10 +47,10 @@ export default function UserButton() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative font-primary">
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition"
+        className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-signal-yellow/20 transition border border-signal-yellow focus:outline-none focus-visible:ring-2 focus-visible:ring-electric-cyan"
       >
         {session.user.image ? (
           <Image
@@ -58,14 +58,14 @@ export default function UserButton() {
             alt={session.user.name || 'User'}
             width={32}
             height={32}
-            className="w-8 h-8 rounded-full"
+            className="w-8 h-8 rounded-full border-2 border-signal-yellow shadow"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-logic-cyan text-white flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-full bg-signal-yellow text-deep-navy flex items-center justify-center font-bold border-2 border-signal-yellow shadow">
             {session.user.name?.[0] || session.user.email?.[0] || 'U'}
           </div>
         )}
-        <span className="hidden md:block text-sm font-medium text-slate-700">
+        <span className="hidden md:block text-sm font-medium text-deep-navy">
           {session.user.name || session.user.email}
         </span>
         <svg
@@ -84,31 +84,31 @@ export default function UserButton() {
             className="fixed inset-0 z-10"
             onClick={() => setShowDropdown(false)}
           />
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-20">
-            <div className="p-3 border-b border-slate-200">
-              <p className="text-sm font-medium text-slate-900">{session.user.name}</p>
-              <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
+          <div className="absolute right-0 mt-2 w-56 bg-paper-white border-2 border-signal-yellow rounded-md shadow-lg z-20 font-primary">
+            <div className="p-3 border-b border-signal-yellow">
+              <p className="text-sm font-medium text-deep-navy">{session.user.name}</p>
+              <p className="text-xs text-logic-cyan truncate">{session.user.email}</p>
             </div>
             <div className="py-1">
               <Link
                 href="/dashboard"
-                className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                className="block px-4 py-2 text-sm text-deep-navy hover:bg-signal-yellow/20 rounded-md"
                 onClick={() => setShowDropdown(false)}
               >
                 Dashboard
               </Link>
               <Link
                 href="/cv-review"
-                className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                className="block px-4 py-2 text-sm text-deep-navy hover:bg-signal-yellow/20 rounded-md"
                 onClick={() => setShowDropdown(false)}
               >
                 CV Review
               </Link>
             </div>
-            <div className="border-t border-slate-200 py-1">
+            <div className="border-t border-signal-yellow py-1">
               <Link
                 href="/auth/signout"
-                className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                className="block px-4 py-2 text-sm text-red-600 hover:bg-signal-yellow/10 rounded-md"
               >
                 Sign Out
               </Link>

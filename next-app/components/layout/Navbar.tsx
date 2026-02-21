@@ -9,37 +9,38 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.svg"
-              alt="QAi Talks Logo"
-              width={40}
-              height={40}
-              className="h-10 w-auto"
-            />
-            <span className="font-bold text-xl text-deep-blueprint hidden">
-              QAi Talks
-            </span>
-          </Link>
+    <nav className="sticky top-0 z-50 bg-paper-white border-b-2 border-signal-yellow shadow-sm flex items-center h-20 px-4 font-primary">
+      <div className="w-full">
+        <div className="flex justify-between items-center h-full">
+          {/* Logo - perfectly flush left, no text */}
+          <div className="flex items-center">
+            <Link href="/" className="block">
+              <Image
+                src="/QaiTalksLogo.svg"
+                alt="QAi Talks Logo"
+                width={360}
+                height={112}
+                className="h-20 w-auto object-left"
+                priority
+              />
+            </Link>
+          </div>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/curriculum" className="text-text-slate hover:text-deep-blueprint transition font-medium">
+            <Link href="/curriculum" className="text-deep-navy hover:text-signal-yellow transition font-medium rounded-md px-2 py-1">
               Curriculum
             </Link>
-            <Link href="/about" className="text-text-slate hover:text-deep-blueprint transition font-medium">
+            <Link href="/about" className="text-deep-navy hover:text-signal-yellow transition font-medium rounded-md px-2 py-1">
               About
             </Link>
-            <Link href="/blog" className="text-text-slate hover:text-deep-blueprint transition font-medium">
+            <Link href="/blog" className="text-deep-navy hover:text-signal-yellow transition font-medium rounded-md px-2 py-1">
               Blog
             </Link>
+            {/* Design Screens link removed (stitch integration removed) */}
             <Link 
               href="/cv-review" 
-              className="px-4 py-2 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-logic-cyan/30 transition-all duration-300"
+              className="px-4 py-2 bg-signal-yellow text-deep-navy rounded-md font-semibold font-primary shadow hover:bg-signal-yellow/90 transition-all duration-300 border-2 border-signal-yellow"
             >
               🤖 CV Review
             </Link>
@@ -49,7 +50,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition"
+            className="md:hidden p-2 rounded-md border-2 border-signal-yellow hover:bg-signal-yellow/20 transition"
             aria-label="Toggle menu"
           >
             <svg
@@ -78,38 +79,38 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200">
-            <div className="flex flex-col gap-3">
+          {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t-2 border-signal-yellow bg-paper-white rounded-b-md shadow-lg">
+            <div className="flex flex-col gap-3 font-primary">
               <Link
                 href="/curriculum"
-                className="px-4 py-2 text-text-slate hover:text-deep-blueprint hover:bg-slate-50 rounded-lg transition font-medium"
+                className="px-4 py-2 text-deep-navy hover:text-signal-yellow hover:bg-signal-yellow/10 rounded-md transition font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Curriculum
               </Link>
               <Link
                 href="/about"
-                className="px-4 py-2 text-text-slate hover:text-deep-blueprint hover:bg-slate-50 rounded-lg transition font-medium"
+                className="px-4 py-2 text-deep-navy hover:text-signal-yellow hover:bg-signal-yellow/10 rounded-md transition font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 About
               </Link>
               <Link
                 href="/blog"
-                className="px-4 py-2 text-text-slate hover:text-deep-blueprint hover:bg-slate-50 rounded-lg transition font-medium"
+                className="px-4 py-2 text-deep-navy hover:text-signal-yellow hover:bg-signal-yellow/10 rounded-md transition font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Blog
               </Link>
               <Link
                 href="/cv-review"
-                className="px-4 py-2 bg-gradient-to-r from-logic-cyan to-logic-cyan-bright text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                className="px-4 py-2 bg-signal-yellow text-deep-navy rounded-md font-semibold shadow border-2 border-signal-yellow hover:bg-signal-yellow/90 transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 🤖 CV Review
               </Link>
-              <div className="px-4 pt-2 border-t border-slate-200">
+              <div className="px-4 pt-2 border-t-2 border-signal-yellow">
                 <UserButton />
               </div>
             </div>

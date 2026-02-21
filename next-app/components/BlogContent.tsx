@@ -28,7 +28,7 @@ const BlogContent: React.FC<BlogContentProps> = ({ html }) => {
       }
     },
   };
-  return <>{parse(html, options)}</>;
+  return <div className="prose prose-lg font-sans text-deep-blueprint max-w-none">{parse(html, options)}</div>;
 };
 
 export default BlogContent;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import InterviewPractice from '@/components/sections/InterviewPractice';
 
@@ -133,7 +133,9 @@ describe('InterviewPractice', () => {
       fireEvent.click(submitButton);
 
       // Fast-forward past analysis delay
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Your Score/i)).toBeInTheDocument();
@@ -176,7 +178,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Next Question/i)).toBeInTheDocument();
@@ -210,7 +214,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Complete Practice Session/i)).toBeInTheDocument();
@@ -255,7 +261,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/1 Completed/i)).toBeInTheDocument();
@@ -286,7 +294,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Avg Score:/i)).toBeInTheDocument();
@@ -319,7 +329,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/What You Did Well/i)).toBeInTheDocument();
@@ -347,7 +359,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Areas to Improve/i)).toBeInTheDocument();
@@ -375,7 +389,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Pro Tip/i)).toBeInTheDocument();
@@ -420,7 +436,9 @@ describe('InterviewPractice', () => {
       const submitButton = screen.getByText(/Submit Answer/i);
       fireEvent.click(submitButton);
 
-      jest.advanceTimersByTime(2000);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
 
       await waitFor(() => {
         const completeButton = screen.getByText(/Complete Practice Session/i);

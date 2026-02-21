@@ -2,18 +2,19 @@
 'use client';
 
 import { useState, useRef, DragEvent, ChangeEvent } from 'react';
-import { processFile, getFileTypeIcon, type FileProcessingResult } from '@/lib/fileProcessing';
+
+// Client now delegates extraction to server `/ingest/file` endpoint.
+// This avoids heavy client-side dependencies like `pdfjs-dist`.
 
 interface FileUploadProps {
   onTextExtracted: (text: string, fileName: string) => void;
   disabled?: boolean;
 }
-
-export function FileUpload({ onTextExtracted, disabled = false }: FileUploadProps) {
+function FileUpload({ onTextExtracted, disabled = false }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastFile, setLastFile] = useState<FileProcessingResult | null>(null);
+  const [lastFile, setLastFile] = useState<{ fileName: string; fileSizeKB?: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
@@ -61,27 +62,28 @@ export function FileUpload({ onTextExtracted, disabled = false }: FileUploadProp
     setLastFile(null);
 
     try {
-      const result = await processFile(file);
-      setLastFile(result);
-
-      if (result.success && result.text) {
-        onTextExtracted(result.text, result.fileName);
-      } else {
-        setError(result.error || 'Failed to process file');
+      const fd = new FormData();
+      fd.append('file', file, file.name);
+      const res = await fetch('/ingest/file', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Upload failed: ${txt}`);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      const j = await res.json();
+      // j.chunks is [{chunk, length}, ...]
+      const combined = Array.isArray(j.chunks) ? j.chunks.map((c: any) => c.chunk).join('\n\n') : '';
+      setLastFile({ fileName: j.source || file.name, fileSizeKB: Math.round(file.size / 1024) });
+      if (combined) onTextExtracted(combined, j.source || file.name);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to upload file.');
     } finally {
       setIsProcessing(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
   const handleBrowseClick = () => {
     if (!disabled && fileInputRef.current) {
+      fileInputRef.current.value = '';
       fileInputRef.current.click();
     }
   };
@@ -96,7 +98,7 @@ export function FileUpload({ onTextExtracted, disabled = false }: FileUploadProp
         onDrop={handleDrop}
         onClick={handleBrowseClick}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all
+          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer font-primary marker-highlight transition-all min-h-40
           ${isDragging
             ? 'border-logic-cyan bg-logic-cyan/5 scale-[1.02]'
             : 'border-slate-300 hover:border-logic-cyan/50 hover:bg-slate-50'
@@ -104,6 +106,9 @@ export function FileUpload({ onTextExtracted, disabled = false }: FileUploadProp
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${isProcessing ? 'pointer-events-none' : ''}
         `}
+        tabIndex={0}
+        role="button"
+        aria-label="Upload file"
       >
         <input
           ref={fileInputRef}
@@ -189,5 +194,8 @@ export function FileUpload({ onTextExtracted, disabled = false }: FileUploadProp
         </div>
       )}
     </div>
+
   );
 }
+
+export default FileUpload;

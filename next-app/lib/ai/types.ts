@@ -22,6 +22,7 @@ export interface CVGenerationResponse {
   matchedKeywords?: string[];
   provider: 'gemini' | 'huggingface';
   generationTimeMs: number;
+  isPaid?: boolean;
 
   /**
    * Section mapping for hallucination detection

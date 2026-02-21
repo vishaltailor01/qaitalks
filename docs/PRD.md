@@ -7,18 +7,76 @@ owner: Product & Engineering Team
 tags: ["product-strategy", "requirements", "curriculum", "platform"]
 ---
 
+
 # QaiTalk - Product Requirements Document
+
+## Design Consistency & Accessibility
+- All user-facing features must follow the Stitch-inspired design system (see `docs/DESIGN_SYSTEM.md`).
+- Accessibility (WCAG 2.1 AA) and responsive design are required for all new features.
 
 ## Executive Summary
 
-**QaiTalk** is a comprehensive QA Automation Bootcamp and mentorship platform designed to transform manual testers into elite automation architects. The platform provides structured technical curriculum, in-depth blog content, and a CV Review & Interview Preparation Tool to accelerate user career development.
+**QaiTalk** is the essential QA career platform—built by QA engineers, for QA engineers. We combine AI-powered career tools, micro-credential courses, and technical deep-dive content to transform manual testers into automation architects ready for SDET roles.
 
-**Mission:** Bridge the gap between script-writing test engineers and true systems architects through blueprints, mentorship, and hands-on learning.
+**Mission:** Elevate QA professionals from test execution to test architecture through targeted skill development, CV optimization, and verifiable credentials.
 
 **Target Users:** 
-- Manual QA testers seeking automation skills
-- Career changers entering QA automation field
-- Senior QA engineers looking to transition to SDET/architecture roles
+
+
+## About QaiTalk
+
+### Built by QA Engineers, For QA Engineers
+
+We know the struggle.
+Years of manual testing. Endless test cases. Copy-pasting Selenium scripts that break on every UI change. CVs rejected by ATS systems. Interview questions you weren't ready for.
+
+QaiTalk was born from that frustration.
+We're a team of practicing QA engineers who've been through it all—manual testing grind, framework wars, SDET interviews, and the transition to modern test architecture. We built QaiTalk because generic bootcamps and ChatGPT couldn't solve our real problems.
+
+### The QA Industry Gap We Solve
+
+Most QA training fails because:
+
+❌ Generic content – teaches "click this button" instead of systems thinking
+❌ Outdated patterns – still preaching Page Object Model in 2026
+❌ No career integration – you learn Selenium but your CV still says "Manual Tester"
+❌ No proof of skills – certificates that mean nothing to hiring managers
+
+QaiTalk fixes this with:
+
+- **AI Career Tools** that optimize your CV + prepare you for the exact job
+- **Micro-Credentials** with verifiable digital badges that appear in your generated CVs
+- **Modern patterns** – Screenplay, contract testing, CI/CD architecture
+- **Skill gap detection** – CV analysis tells you exactly what to learn next
+
+### What Sets Us Apart
+
+| Typical QA Training         | QaiTalk                                      |
+|----------------------------|-----------------------------------------------|
+| Generic Selenium tutorials | QA-specific AI CV optimization                |
+| 12-week commitments        | 2-4 hour micro-credentials                    |
+| PDF certificates           | Verifiable digital badges                     |
+| No career tools            | CV → Course recommendations                   |
+|£2700+ bootcamps                | £4.99 application packs                       |
+
+### Real QA Engineers, Real Results
+
+No corporate course sellers here.
+We're practicing QA engineers who've hired, fired, interviewed, and mentored dozens of testers. We've felt the ATS rejections. We've failed SDET interviews. We built what actually works.
+
+What Our Users Achieve
+
+90% boost ATS match score 30+ points (1 Application Pack)
+75% complete first micro-credential in 7 days  
+QAi badges = 3x interview callbacks (our data)
+No hype. Just measurable outcomes.
+
+Start seeing your results today:
+
+[Free CV Check]  [Micro-Credentials]  [QA Blog]
+Built by QA engineers rejected by ATS.
+
+
 
 ---
 
@@ -26,7 +84,8 @@ tags: ["product-strategy", "requirements", "curriculum", "platform"]
 
 ### 1.1 Vision Statement
 
-At QaiTalk, we believe that true QA excellence comes not from copying test scripts, but from understanding systems, frameworks, and architectural patterns. We empower testing professionals to think like architects.
+"QaiTalk: Built by QA engineers, for QA engineers.
+We transform test script writers into QA architects who design unbreakable systems – not just copy scripts."
 
 ### 1.2 Core Value Proposition
 
@@ -56,11 +115,7 @@ At QaiTalk, we believe that true QA excellence comes not from copying test scrip
 **Key Sections:**
 - Hero section with value proposition ("QA Automation Bootcamp: From Manual to DevOps")
 - Statistics showcase (12 weeks, +75% salary growth, 500+ engineers trained, etc.)
-- Curriculum overview (6 core modules with icons)
-- Call-to-action buttons (Enroll, Learn More, Browse Blog)
-- Latest blog post highlights
 - Navigation to secondary pages
-
 **Technical Requirements:**
 - ✅ Fully responsive (mobile-first design)
 - ✅ Fast load time (<2.5s LCP)
@@ -69,10 +124,6 @@ At QaiTalk, we believe that true QA excellence comes not from copying test scrip
 - ✅ Accessible keyboard navigation (WCAG 2.1 AA)
 
 **[Status: COMPLETE]**
-
----
-
-### 2.2 About Page
 
 **Purpose:** Build credibility and explain the QaiTalk mission
 
@@ -85,7 +136,6 @@ At QaiTalk, we believe that true QA excellence comes not from copying test scrip
 - Call to curriculum/contact
 
 **Content Requirements:**
-- Clear explanation of Page Object Model vs. Screenplay Pattern
 - Business case for investing in QA education
 - Statistics on industry demand for SDET/automation architects
 - Compelling brand narrative
@@ -94,12 +144,7 @@ At QaiTalk, we believe that true QA excellence comes not from copying test scrip
 
 ---
 
-### 2.3 Curriculum Module (12-Week Program)
-
-**Purpose:** Provide structured learning path with clear progression
-
 **Curriculum Structure:**
-
 | Module | Duration | Topics | Focus |
 |--------|----------|--------|-------|
 | **01: Manual Testing Fundamentals** | 2 weeks | ISTQB principles, test case design, testing mindset | Foundation |
@@ -109,10 +154,6 @@ At QaiTalk, we believe that true QA excellence comes not from copying test scrip
 | **05: CI/CD Pipelines & Scaling** | 2 weeks | Jenkins, Docker, pipeline automation, parallel execution | DevOps Integration |
 | **06: DevOps & System Design** | 2 weeks | Cloud deployment, monitoring, observability, scaling | Systems Thinking |
 
-**Technical Requirements:**
-- Expandable/collapsible module cards
-- Clear learning objectives for each module
-- Estimated time commitment per module
 - Prerequisites clearly stated
 - Version tracking for course updates
 - Interactive curriculum guide
@@ -290,8 +331,254 @@ Client Form → API Route → AI Service Layer
 
 **[Status: PLANNED – Implementation starting Q1 2026]**
 
----
 
+### 2.8 Micro-Credential Courses & Digital Badges
+
+**Executive Summary**
+
+Purpose: Provide short, verifiable QA skill courses (2–4 hours each) that award digital badges, recommended by QAi CV analysis when skill gaps are detected.
+
+MVP Scope:
+- ISTQB Foundation Essentials (4 hours, 5 modules + final exam)
+- Same infrastructure supports future courses (API Testing, Automation Foundations, etc.)
+
+Value Proposition:
+- CV‑integrated: Badges appear in QAi CVs and improve ATS match.
+- Gap‑driven: CV tool recommends relevant courses.
+- Verifiable: Digital badges with public verification.
+- Target Revenue: £2,000/month (100 enrolments @ £19.99)
+
+**Target Users**
+
+| Persona           | Needs                        | Why Micro‑Credentials?           |
+|-------------------|------------------------------|----------------------------------|
+| Junior QA         | ISTQB terminology, fundamentals | Entry requirement for many roles |
+| Manual → Automation | API testing, automation basics | Skill gaps blocking CV match     |
+| Working QA        | Agile testing, bug reporting  | Quick upskill for promotions     |
+
+**Core User Journey**
+
+CV Quick Check → "Missing ISTQB fundamentals"
+         ↓
+"Recommended: ISTQB Foundation Essentials" CTA
+         ↓
+Enroll (£19.99) → Module 1 → Quiz → Module 2 → ...
+         ↓
+Final Exam → Pass → Digital Badge
+         ↓
+Badge appears in next CV pack + profile
+
+**Functional Requirements**
+
+**4.1 Course Catalogue**
+US1 – Browse Courses
+As a user, I want to see available micro‑credentials.
+
+Page: /learn or /micro-credentials
+Shows:
+✓ Course card: Title, description, duration, badge name
+✓ "Preview first module" button (free)
+✓ "Enroll" button (£19.99)
+✓ User's earned badges section
+
+**4.2 Enrolment & Payment**
+US2 – Enroll in Course
+As a user, I want to pay and start a course.
+
+Flow:
+1. Click "Enroll" → Stripe Checkout (£19.99)
+2. Success → Redirect to Module 1
+3. Dashboard shows "Enrolled" status
+
+**4.3 Module Learning Flow**
+US3 – Complete a Module
+As a learner, I want to work through modules sequentially.
+
+Each module (1-5):
+1. Video (embedded, track 80% watched)
+2. Reading (HTML, "Mark as done" button)
+3. Quiz (5-10 MCQs, 70% pass to unlock next)
+
+Progress bar: "Module 2 of 5 (40%)"
+
+MVP Module Structure (ISTQB Foundation Essentials):
+
+| Module           | Video | Reading | Quiz |
+|------------------|-------|---------|------|
+| 1. Fundamentals  | 25min | 10min   | 8 Qs |
+| 2. SDLC          | 30min | 12min   | 10 Qs|
+| 3. Static Testing| 20min | 8min    | 7 Qs |
+| 4. Test Design   | 40min | 15min   | 12 Qs|
+| 5. Test Management|25min | 10min   | 8 Qs |
+
+**4.4 Final Exam**
+US4 – Take Final Exam
+As a learner, I want to prove mastery with a final exam.
+
+Unlocks after all modules complete
+✓ 30 MCQs (60min timer)
+✓ Questions cover all modules proportionally
+✓ Single attempt (MVP)
+✓ Results: Score % + Pass/Fail (75% pass)
+
+**4.5 Detailed Results & Badge**
+US5 – Review Exam & Earn Badge
+As a learner, I want to see results and get my badge.
+
+Exam Results Page:
+✓ Overall score (%)
+✓ Pass/Fail status
+✓ Per-question review (your answer vs correct + explanation)
+
+On Pass (≥75%):
+✓ Badge awarded immediately
+✓ Badge appears in:
+   - Profile (/profile/badges)
+   - CV Application Packs
+   - Public share link
+
+**Technical Specifications**
+
+**5.1 Database Schema (Supabase/Prisma)**
+
+```prisma
+model Course {
+   id          String   @id @default(cuid())
+   slug        String   @unique
+   title       String
+   description String
+   duration    Int      // minutes
+   price       Decimal  // £19.99
+   modules     Module[]
+   badges      Badge[]
+}
+
+model Module {
+   id           String   @id @default(cuid())
+   courseId     String
+   order        Int
+   title        String
+   videoUrl     String
+   readingHtml  String
+   quizId       String
+   course       Course   @relation(fields: [courseId], references: [id])
+}
+
+model Quiz {
+   id        String    @id @default(cuid())
+   moduleId  String
+   questions Question[]
+   module    Module    @relation(fields: [moduleId], references: [id])
+}
+
+model Question {
+   id       String @id @default(cuid())
+   quizId   String
+   text     String
+   type     String // "mcq"
+   options  Json   // ["A", "B", "C", "D"]
+   correct  Int    // 0-3 index
+   explain  String
+   quiz     Quiz   @relation(fields: [quizId], references: [id])
+}
+
+model UserProgress {
+   id        String   @id @default(cuid())
+   userId    String
+   courseId  String
+   moduleId  String?
+   status    String   // "not_started", "in_progress", "completed"
+   quizScore Decimal?
+}
+
+model ExamAttempt {
+   id        String   @id @default(cuid())
+   userId    String
+   courseId  String
+   score     Decimal
+   passed    Boolean
+   answers   Json     // user responses
+   createdAt DateTime @default(now())
+}
+
+model Badge {
+   id          String   @id @default(cuid())
+   userId      String
+   courseId    String
+   awardedAt   DateTime @default(now())
+   verifiedUrl String?  // Public verification link
+}
+```
+
+**5.2 API Endpoints**
+
+GET   /api/courses              # List all courses
+GET   /api/courses/:slug         # Course details + modules
+POST  /api/courses/:slug/enroll  # Stripe checkout
+GET   /api/courses/:slug/modules # User's progress
+POST  /api/quizzes/:quizId/attempt # Submit quiz
+GET   /api/exams/:courseSlug/attempt # Start final exam
+POST  /api/exams/:attemptId/submit # Submit exam
+GET   /api/badges               # User's badges
+GET   /api/badges/:id/verify    # Public verification
+
+**5.3 Frontend Components**
+
+CourseCatalogue (grid of course cards)
+CourseDetail (description + enroll CTA)
+ModulePlayer (video + reading + quiz)
+ProgressBar (course/module status)
+ExamPlayer (timer + questions)
+ResultsView (score + question review)
+BadgeCard (earned badges display)
+
+**Integration with CV Tools**
+
+**6.1 CV → Course Recommendations**
+
+CV Quick Check detects:
+- No ISTQB → "Recommended: ISTQB Foundation Essentials"
+- No API testing → "Recommended: API Testing Fundamentals"
+
+CTA button → /learn/istqb-foundation
+
+**6.2 Badges in CV Generation**
+
+Application Pack CV includes:
+Certifications Section:
+✓ "QAi Micro‑Credential: ISTQB Foundation Essentials"
+✓ Issue date + verification link
+
+**MVP Content: ISTQB Foundation Essentials**
+
+| Module           | Video Length | Key Topics                | Quiz Qs |
+|------------------|--------------|---------------------------|---------|
+| 1. Fundamentals  | 25min        | 7 principles, testing vs quality | 8      |
+| 2. SDLC          | 30min        | Models, test levels/types | 10     |
+| 3. Static Testing| 20min        | Reviews, static analysis  | 7      |
+| 4. Test Design   | 40min        | Black/white box techniques| 12     |
+| 5. Test Management|25min        | Planning, metrics, tools  | 8      |
+| Final Exam       | 60min        | All modules, 75% pass     | 40     |
+
+**KPIs**
+
+| Metric         | Target (Month 3) | Target (Month 6) |
+|----------------|------------------|------------------|
+| Enrolments     | 50               | 100              |
+| Completion Rate| >70%             | >75%             |
+| Exam Pass Rate | >80%             | >85%             |
+| Badges Issued  | 30               | 75               |
+| CV Conversion  | 10% of badge earners buy Application Pack | 15% |
+
+**Success Criteria**
+
+✅ All user stories pass acceptance criteria
+✅ <2s page loads
+✅ Quiz/exam scoring 100% accurate
+✅ Stripe payments work (test + live)
+✅ Badges verifiable
+✅ CV integration works
+✅ 80%+ module completion rate in first month
 ## 3. User Journeys
 
 ### 3.1 New User Onboarding

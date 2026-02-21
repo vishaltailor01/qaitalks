@@ -1,4 +1,9 @@
+
 # CV Review & Interview Prep Tool - Implementation Summary
+
+## Design System Adoption
+- All CV Review Tool UI is refactored to use the Stitch-inspired design system (see `docs/DESIGN_SYSTEM.md`).
+- Accessibility (WCAG 2.1 AA) and responsive design are enforced throughout the feature.
 
 **Implementation Date:** February 11, 2024  
 **Status:** ✅ Complete and Production-Ready
@@ -48,7 +53,7 @@ Fully implemented AI-powered CV Review & Interview Preparation Tool on the QaiTa
 ## 🗂️ File Structure
 
 ```
-next-app/
+apps/web/
 ├── app/
 │   ├── cv-review/
 │   │   ├── layout.tsx                    ✅ NEW - Metadata for CV review page
@@ -61,10 +66,10 @@ next-app/
 │   │           └── route.ts              ✅ NEW - Metrics endpoint
 │   ├── layout.tsx                        ✅ UPDATED - Root layout
 │   └── page.tsx                          ✅ UPDATED - Homepage hero section
-├── components/
+│   ├── components/
 │   └── layout/
 │       └── Navbar.tsx                    ✅ UPDATED - Added CV Review nav button
-├── lib/
+│   ├── lib/
 │   ├── ai/
 │   │   ├── index.ts                      ✅ UPDATED - Fixed errors
 │   │   ├── gemini.ts                     ✅ UPDATED - Real Gemini API implementation
@@ -78,7 +83,7 @@ next-app/
 │   ├── monitoring.ts                     ✅ NEW - Logging & metrics (380 lines)
 │   └── monitoring/
 │       └── README.md                     ✅ NEW - Monitoring documentation
-├── e2e/
+│   ├── e2e/
 │   ├── cv-review.spec.ts                 ✅ NEW - E2E test suite (485 lines, 19 tests)
 │   └── README.md                         ✅ UPDATED - Added CV review tests reference
 └── .env.example                          ✅ UPDATED - Added AI API keys
@@ -125,7 +130,7 @@ Lines of Code: ~2,200+ (excluding documentation)
 - Llama-specific prompt formatting
 - Automatic fallback on Gemini failures
 
-**API Orchestration:** `lib/ai/index.ts`
+**API Orchestration:** `apps/web/lib/ai/index.ts`
 - Primary → Fallback logic
 - Error handling and retries
 - Provider selection tracking
@@ -133,13 +138,13 @@ Lines of Code: ~2,200+ (excluding documentation)
 
 ### 3. Security Layer
 
-**Rate Limiting (`lib/rateLimit.ts`):**
+**Rate Limiting (`apps/web/lib/rateLimit.ts`):**
 - **Algorithm:** IP-based sliding window
 - **Limit:** 10 requests per 24 hours
 - **Storage:** In-memory Map (production: Redis recommended)
 - **Headers:** X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
 
-**Input Sanitization (`lib/sanitize.ts`):**
+**Input Sanitization (`apps/web/lib/sanitize.ts`):**
 - **Prompt Injection Detection:** Regex patterns for common attacks
 - **Character Limits:** Resume (10K), Job Description (5K)
 - **Special Characters:** Removal of control characters
@@ -152,7 +157,7 @@ Lines of Code: ~2,200+ (excluding documentation)
 
 ### 4. Monitoring System
 
-**Logger (`lib/monitoring.ts`):**
+**Logger (`apps/web/lib/monitoring.ts`):**
 - **Levels:** debug, info, warn, error
 - **Categories:** api, ai_provider, rate_limit, security, performance
 - **Structured Output:** JSON-formatted log entries
@@ -174,7 +179,7 @@ Lines of Code: ~2,200+ (excluding documentation)
 
 ### 5. User Experience Features
 
-**PDF Export (`lib/pdfExport.ts`):**
+**PDF Export (`apps/web/lib/pdfExport.ts`):**
 - **Library:** jsPDF
 - **Features:**
   - Branded header/footer
@@ -183,7 +188,7 @@ Lines of Code: ~2,200+ (excluding documentation)
   - Metadata (generation time, provider, date)
 - **Filename:** `CV_Review_YYYY-MM-DD.pdf`
 
-**History Management (`lib/cvHistory.ts`):**
+**History Management (`apps/web/lib/cvHistory.ts`):**
 - **Storage:** localStorage
 - **Capacity:** Last 5 reviews
 - **Data Stored:** Previews only (first 100/50 chars)
@@ -222,7 +227,7 @@ Lines of Code: ~2,200+ (excluding documentation)
 
 ## 🧪 Testing Details
 
-### E2E Test Suite (`e2e/cv-review.spec.ts`)
+### E2E Test Suite (`apps/web/e2e/cv-review.spec.ts`)
 
 **19 Tests Covering:**
 
@@ -328,10 +333,10 @@ AWS_REGION=us-east-1
 - ✅ **Privacy Indicators** - "No Data Stored" badges
 
 ### Developer Documentation
-- ✅ **AI Setup Guide** - `lib/ai/README.md`
-- ✅ **AI Quick Start** - `lib/ai/QUICKSTART.md`
-- ✅ **Monitoring Guide** - `lib/monitoring/README.md`
-- ✅ **E2E Test README** - `e2e/README.md` (updated)
+- ✅ **AI Setup Guide** - `apps/web/lib/ai/README.md`
+- ✅ **AI Quick Start** - `apps/web/lib/ai/QUICKSTART.md`
+- ✅ **Monitoring Guide** - `apps/web/lib/monitoring/README.md`
+- ✅ **E2E Test README** - `apps/web/e2e/README.md` (updated)
 - ✅ **This Summary** - Complete implementation overview
 
 ### API Documentation
@@ -434,7 +439,7 @@ curl http://localhost:3000/api/cv-review/metrics | jq
 **Watch Logs:**
 ```bash
 # Console logs (development)
-tail -f next-app/.next/server/logs
+tail -f apps/web/.next/server/logs
 
 # CloudWatch (production)
 aws logs tail /qaitalk/cv-review --follow

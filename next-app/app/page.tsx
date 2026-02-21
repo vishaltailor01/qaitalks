@@ -24,7 +24,7 @@ export default function Home() {
       <section className="pt-32 pb-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Decorative annotation */}
-          <div className="absolute right-8 top-0 text-warning-amber font-hand text-2xl font-bold rotate-[-2deg] pointer-events-none hidden lg:block animate-float drop-shadow-lg">
+          <div className="absolute right-8 top-0 text-signal-yellow font-primary text-2xl font-bold pointer-events-none hidden lg:block drop-shadow">
             Latest Cohort Open!
           </div>
 
@@ -46,7 +46,7 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mb-16 relative">
-            <div className="absolute left-0 md:left-52 top-0 text-warning-amber font-hand text-sm font-bold transform rotate-1 pointer-events-none hidden md:block">
+            <div className="absolute left-0 md:left-52 top-0 text-signal-yellow font-primary text-sm font-bold pointer-events-none hidden md:block">
               Start Here ⤵
             </div>
             <Link
@@ -65,7 +65,7 @@ export default function Home() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 relative">
-            <div className="absolute right-0 lg:right-32 -top-12 text-logic-cyan font-hand text-xl font-bold transform rotate-2 pointer-events-none hidden lg:block">
+            <div className="absolute right-0 lg:right-32 -top-12 text-logic-cyan font-primary text-xl font-bold pointer-events-none hidden lg:block">
               High ROI 🚀
             </div>
             {stats.map((stat, idx) => (
@@ -73,7 +73,7 @@ export default function Home() {
                 key={idx}
                 className="bg-white border-2 border-deep-blueprint rounded px-6 py-6 text-center relative overflow-hidden"
               >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-logic-cyan to-warning-amber"></div>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-logic-cyan to-signal-yellow"></div>
                 <div className="font-bold text-xl md:text-2xl text-deep-blueprint font-mono">{stat.value}</div>
                 <div className="text-sm text-text-slate opacity-80 mt-2">{stat.label}</div>
               </div>
@@ -111,9 +111,9 @@ export default function Home() {
       </section>
 
       {/* Blueprint Preview Section */}
-      <section id="blueprint-preview" className="py-20 bg-gradient-to-br from-logic-cyan via-slate-50 to-warning-amber bg-opacity-5">
+      <section id="blueprint-preview" className="py-20 bg-gradient-to-br from-logic-cyan via-slate-50 to-signal-yellow bg-opacity-5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="absolute left-6 top-16 text-logic-cyan font-hand text-sm font-bold -rotate-1 pointer-events-none hidden md:block">
+          <div className="absolute left-6 top-16 text-logic-cyan font-primary text-sm font-bold pointer-events-none hidden md:block">
             industry standard ⤵
           </div>
 
@@ -126,7 +126,7 @@ export default function Home() {
             {blueprintModules.map((module, idx) => (
               <div
                 key={idx}
-                className="bg-white border-2 border-deep-blueprint border-l-4 border-l-logic-cyan rounded p-6 hover:translate-x-2 hover:border-l-warning-amber hover:shadow-lg transition cursor-pointer"
+                className="bg-white border-2 border-deep-blueprint border-l-4 border-l-logic-cyan rounded p-6 hover:translate-x-2 hover:border-l-signal-yellow hover:shadow-lg transition cursor-pointer"
               >
                 <div className="font-mono text-xs font-semibold text-logic-cyan-bright mb-2 tracking-wider">
                   MODULE {module.number}
@@ -243,7 +243,7 @@ export default function Home() {
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute -top-4 -right-4 bg-warning-amber text-deep-blueprint px-4 py-2 rounded-lg font-bold text-sm shadow-lg transform rotate-3 border-2 border-deep-blueprint">
+              <div className="absolute -top-4 -right-4 bg-signal-yellow text-deep-navy px-4 py-2 rounded-lg font-bold text-sm shadow-lg transform rotate-3 border-2 border-deep-blueprint">
                 100% Private
               </div>
             </div>
@@ -263,11 +263,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
             <Link
               href="/curriculum"
-              className="inline-block px-12 py-4 bg-gradient-to-r from-warning-amber to-amber-400 text-deep-blueprint font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
+              className="inline-block px-12 py-4 bg-gradient-to-r from-signal-yellow to-amber-400 text-deep-navy font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
             >
               View Curriculum
             </Link>
-            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-warning-amber rounded text-warning-amber font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
+            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-signal-yellow rounded text-signal-yellow font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
               Limited Intake: Next Cohort Starting Soon
             </span>
           </div>

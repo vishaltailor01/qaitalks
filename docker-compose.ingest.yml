@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  postgres:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ingest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ingest_pgdata:/var/lib/postgresql/data
+
+  ingest-service:
+    build:
+      context: ./ingest-service
+    env_file:
+      - ./ingest-service/.env.example
+    environment:
+      # Use host.docker.internal so the container can reach a mock server on the host
+      - GEMINI_PROXY_URL=http://host.docker.internal:8000/mock/gemini
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  ingest_pgdata:

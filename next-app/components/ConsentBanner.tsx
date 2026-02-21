@@ -27,14 +27,17 @@ export default function ConsentBanner() {
       aria-label="Cookie consent"
       className="fixed bottom-0 left-0 w-full bg-black text-white p-4 z-50 text-center border-t-4 border-signal-yellow shadow-[0_-4px_0_0_rgba(255,182,0,0.10)] font-sans"
     >
-      <span className="font-medium">We use cookies for authentication and analytics. By using this site, you consent to our use of cookies.</span> See our{' '}
+      <span className="font-medium">
+        We use essential cookies to keep QAi Talks running smoothly and to help us understand how you use our site. By continuing, you’re agreeing to our use of biscuits (the digital kind!).
+      </span>
+      {' '}Read our{' '}
       <a href="/privacy-policy" className="text-white underline font-medium hover:text-signal-yellow focus:outline-none focus:ring-2 focus:ring-electric-cyan transition">Privacy Policy</a>.
       <button
         onClick={handleAccept}
         aria-label="Accept cookies"
         className="ml-4 bg-signal-yellow text-deep-navy border-none px-5 py-2 rounded-lg cursor-pointer font-semibold shadow-sm hover:bg-signal-yellow/90 focus:outline-none focus:ring-2 focus:ring-electric-cyan transition"
       >
-        Accept
+        That’s fine
       </button>
     </div>
   );

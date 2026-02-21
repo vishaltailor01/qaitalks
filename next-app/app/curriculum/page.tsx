@@ -1,7 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+
 import { useState } from 'react'
+import Modal from '@/components/Modal'
+import SyllabusGrid from '@/components/SyllabusGrid'
+
+
 
 interface ModuleProps {
   number: string
@@ -14,59 +19,69 @@ interface ModuleProps {
 }
 
 function Module({ number, icon, title, subtitle, version, content, highlight }: ModuleProps) {
-  const [isCollapsed, setIsCollapsed] = useState(true)
-
+  const [open, setOpen] = useState(false)
   return (
-    <div className="relative bg-white rounded-lg border-2 border-deep-blueprint shadow-lg overflow-hidden transition-all duration-300">
-      {highlight && (
-        <span className="absolute -top-5 left-[30%] font-hand text-lg font-bold rotate-[2deg] z-10 text-warning-amber">
-          {highlight}
-        </span>
-      )}
-      
-      <div
-        className="p-8 cursor-pointer hover:bg-slate-50 transition-colors relative"
-        onClick={() => setIsCollapsed(!isCollapsed)}
-      >
-        <div className="flex gap-6 items-start">
-          <div className="text-5xl">{icon}</div>
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-3">
-              <span className="font-mono text-xs uppercase tracking-wider text-logic-cyan font-bold">
-                {number}
-              </span>
-              <span className="font-mono text-[0.7rem] text-purple-accent opacity-70">
-                {version}
-              </span>
+    <>
+      <div className="relative my-8">
+        <div className="relative bg-white rounded-2xl shadow-xl border-l-8 border-logic-cyan transition-all duration-300 overflow-hidden group hover:shadow-2xl">
+          {highlight && (
+            <span className="absolute -top-6 left-6 font-primary text-base font-bold rotate-[-2deg] z-10 text-signal-yellow marker-highlight px-3 py-1">
+              {highlight}
+            </span>
+          )}
+          <div className="flex gap-6 items-start p-8">
+            <div className="text-5xl drop-shadow-[2px_2px_0_rgba(255,183,0,0.18)]">{icon}</div>
+            <div className="flex-1">
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-mono text-xs uppercase tracking-wider text-logic-cyan font-bold">
+                  {number}
+                </span>
+                <span className="font-mono text-[0.7rem] text-purple-accent opacity-70">
+                  {version}
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black text-deep-blueprint mb-1 flex items-center gap-2">
+                {title}
+                <span className="inline-block align-middle">
+                  <svg width="48" height="8" viewBox="0 0 48 8" fill="none"><path d="M2 6 Q 12 2, 24 6 T 46 6" stroke="#FFB600" strokeWidth="2.5" fill="none" strokeLinecap="round"/></svg>
+                </span>
+              </h2>
+              <div className="text-slate-600 font-medium mb-1 text-lg font-primary opacity-80">{subtitle}</div>
             </div>
-            <h2 className="text-3xl font-black text-deep-blueprint mb-2">{title}</h2>
-            <div className="text-slate-600 font-medium mb-2">{subtitle}</div>
-            <div className="text-sm text-slate-400 italic opacity-0 group-hover:opacity-100 transition-opacity">
-              {isCollapsed ? 'Click to expand module details' : 'Click to collapse module details'}
-            </div>
-          </div>
-          <div className={`text-3xl text-logic-cyan transition-transform duration-300 ${isCollapsed ? 'rotate-[-90deg]' : ''}`}>
-            ▼
+              <button
+              className="ml-4 px-6 py-2 bg-gradient-to-r from-logic-cyan to-signal-yellow text-white font-bold rounded-full shadow hover:scale-105 transition font-primary"
+              onClick={() => setOpen(true)}
+              aria-label={`View details for ${title}`}
+            >
+              View Details
+            </button>
           </div>
         </div>
       </div>
-
-      <div
-        className={`transition-all duration-500 ease-in-out overflow-hidden ${
-          isCollapsed ? 'max-h-0' : 'max-h-[5000px]'
-        }`}
-      >
-        <div className="p-8 pt-0 space-y-4">
-          {content}
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <div className="flex gap-4 items-center mb-4">
+          <div className="text-4xl">{icon}</div>
+          <div>
+            <div className="font-mono text-xs uppercase tracking-wider text-logic-cyan font-bold">{number}</div>
+            <div className="font-mono text-[0.7rem] text-purple-accent opacity-70">{version}</div>
+          </div>
         </div>
-      </div>
-    </div>
+        <h2 className="text-2xl md:text-3xl font-black text-deep-blueprint mb-2 flex items-center gap-2">
+          {title}
+          <span className="inline-block align-middle">
+            <svg width="48" height="8" viewBox="0 0 48 8" fill="none"><path d="M2 6 Q 12 2, 24 6 T 46 6" stroke="#FFB700" strokeWidth="2.5" fill="none" strokeLinecap="round"/></svg>
+          </span>
+        </h2>
+        <div className="text-slate-600 font-medium mb-4 text-lg font-primary opacity-80">{subtitle}</div>
+        <div>{content}</div>
+      </Modal>
+    </>
   )
 }
 
 function TopicSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-slate-50/50 rounded-lg p-6 border-l-4 border-logic-cyan hover:bg-cyan-50/50 hover:border-warning-amber hover:translate-x-1 transition-all duration-300">
+    <div className="bg-slate-50/50 rounded-lg p-6 border-l-4 border-logic-cyan hover:bg-cyan-50/50 hover:border-signal-yellow hover:translate-x-1 transition-all duration-300">
       <h3 className="text-xl font-bold text-deep-blueprint mb-4">{title}</h3>
       {children}
     </div>
@@ -75,17 +90,24 @@ function TopicSection({ title, children }: { title: string; children: React.Reac
 
 export default function CurriculumPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Hero Section */}
-      <section className="pt-32 pb-16 px-6 text-center relative">
-        <div className="max-w-7xl mx-auto relative">
-          <span className="absolute right-[8%] top-[10%] font-hand text-logic-cyan text-3xl font-bold rotate-[-3deg] animate-float drop-shadow-lg hidden md:block">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-slate-100">
+      {/* Modern Hero Section */}
+      <section className="relative pt-32 pb-16 px-6 flex flex-col items-center justify-center text-center overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute left-1/2 top-0 w-[600px] h-[600px] -translate-x-1/2 bg-gradient-to-br from-logic-cyan/20 via-blue-300/10 to-purple-300/5 rounded-full blur-3xl opacity-60 animate-pulse-slow" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center">
+          <span className="text-[6rem] md:text-[8rem] mb-4 drop-shadow-xl animate-float">📘</span>
+          <h1 className="text-5xl md:text-7xl font-black text-deep-blueprint mb-4 tracking-tight drop-shadow-lg relative">
+            The Blueprint Curriculum
+            <span className="block w-full mx-auto mt-2 h-8px">
+              <svg width="320" height="8" viewBox="0 0 320 8" fill="none"><path d="M2 6 Q 80 2, 160 6 T 318 6" stroke="#FFB700" strokeWidth="4" fill="none" strokeLinecap="round"/></svg>
+            </span>
+          </h1>
+          <span className="inline-block bg-gradient-to-r from-logic-cyan to-signal-yellow text-white text-lg md:text-xl font-bold px-6 py-2 rounded-full shadow-lg mb-4 animate-gradient-x marker-highlight">
             12 Week Intensive
           </span>
-          <h1 className="text-6xl md:text-7xl font-black text-deep-blueprint mb-6">
-            The Blueprint Curriculum
-          </h1>
-          <p className="text-xl max-w-3xl mx-auto opacity-80 text-text-slate">
+          <p className="text-xl max-w-2xl mx-auto text-text-slate/90 font-medium mb-2">
             A precisely engineered journey from manual testing to full-stack automation and DevOps leadership.
           </p>
         </div>
@@ -94,54 +116,40 @@ export default function CurriculumPage() {
       {/* Curriculum Modules */}
       <section className="pb-20 px-6">
         <div className="max-w-5xl mx-auto space-y-8">
+          <div className="mb-8">
+            <SyllabusGrid />
+          </div>
           {/* Module 1: Manual Testing */}
           <Module
             number="Module 01"
-            icon="📋"
+            icon="🧑‍💻"
             title="Manual Testing"
-            subtitle="Professional Curriculum aligned with ISTQB Standards"
-            version="VER: 1.2.0 // FOUNDATIONS"
+            subtitle="Foundations of Software Testing"
+            version="VER: 1.0.0 // FOUNDATIONS"
             content={
               <>
                 <TopicSection title="1. Fundamentals of Testing">
                   <ul className="space-y-2 list-disc list-inside text-slate-700">
-                    <li><strong className="text-logic-cyan">What is Testing:</strong> Moving beyond &quot;finding bugs&quot; to quality assurance and risk reduction</li>
-                    <li><strong className="text-logic-cyan">Why Testing is Necessary:</strong> Cost of failure and testing&apos;s role in SDLC</li>
-                    <li><strong className="text-logic-cyan">7 Testing Principles:</strong> Context-dependent testing, Pesticide Paradox, and more</li>
-                    <li><strong className="text-logic-cyan">Activities & Testware:</strong> Test basis, conditions, cases, scripts, and reports</li>
-                    <li><strong className="text-logic-cyan">Roles & Skills:</strong> Tester vs. Test Manager; analytical and communication skills</li>
+                    <li>Why testing is critical in software development</li>
+                    <li>Quality, risk, and cost of defects</li>
                   </ul>
                 </TopicSection>
-
                 <TopicSection title="2. Testing Throughout the SDLC">
-                  <h4 className="font-bold text-deep-blueprint mb-2">Test Levels:</h4>
-                  <ul className="space-y-1 list-disc list-inside text-slate-700 mb-4">
-                    <li>Component/Unit Testing</li>
-                    <li>Integration Testing</li>
-                    <li>System Testing</li>
-                    <li>User Acceptance Testing (UAT)</li>
-                  </ul>
-                  <h4 className="font-bold text-deep-blueprint mb-2">Test Types:</h4>
-                  <ul className="space-y-1 list-disc list-inside text-slate-700">
-                    <li>Functional vs. Non-functional testing</li>
-                    <li>Change-related testing (Confirmation vs. Regression)</li>
-                  </ul>
-                </TopicSection>
-
-                <TopicSection title="3. Static Testing">
                   <ul className="space-y-2 list-disc list-inside text-slate-700">
-                    <li>Value of finding defects without code execution</li>
-                    <li>Formal vs. Informal reviews</li>
-                    <li>Review roles: Author, Moderator, Reader, Scribe</li>
+                    <li>V-Model, Agile, and DevOps approaches</li>
+                    <li>Test levels: Unit, Integration, System, Acceptance</li>
                   </ul>
                 </TopicSection>
-
-                <TopicSection title="4. Test Techniques">
+                <TopicSection title="3. Static vs. Dynamic Testing">
+                  <ul className="space-y-2 list-disc list-inside text-slate-700">
+                    <li>Reviews, walkthroughs, and static analysis</li>
+                    <li>Dynamic execution and defect detection</li>
+                  </ul>
+                </TopicSection>
+                <TopicSection title="4. Test Design Techniques">
                   <h4 className="font-bold text-deep-blueprint mb-2">Black-Box:</h4>
                   <ul className="space-y-1 list-disc list-inside text-slate-700 mb-3">
-                    <li>Equivalence Partitioning & Boundary Value Analysis</li>
-                    <li>Decision Table Testing</li>
-                    <li>State Transition Testing</li>
+                    <li>Equivalence Partitioning, Boundary Value Analysis, State Transition, Use Case</li>
                   </ul>
                   <h4 className="font-bold text-deep-blueprint mb-2">White-Box:</h4>
                   <ul className="space-y-1 list-disc list-inside text-slate-700 mb-3">
@@ -152,7 +160,6 @@ export default function CurriculumPage() {
                     <li>Error Guessing, Exploratory Testing, Checklist-based testing</li>
                   </ul>
                 </TopicSection>
-
                 <TopicSection title="5. Managing Test Activities">
                   <ul className="space-y-2 list-disc list-inside text-slate-700">
                     <li><strong className="text-logic-cyan">Test Planning:</strong> Estimation, entry/exit criteria, resource allocation</li>
@@ -161,7 +168,6 @@ export default function CurriculumPage() {
                     <li><strong className="text-logic-cyan">Defect Management:</strong> Lifecycle from discovery to closure</li>
                   </ul>
                 </TopicSection>
-
                 <TopicSection title="6. Test Tools">
                   <ul className="space-y-2 list-disc list-inside text-slate-700">
                     <li>Tool classification: Management, static, execution, performance</li>
@@ -468,11 +474,11 @@ export default function CurriculumPage() {
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
             <Link
               href="/curriculum"
-              className="inline-block px-12 py-4 bg-gradient-to-r from-warning-amber to-amber-400 text-deep-blueprint font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
+              className="inline-block px-12 py-4 bg-gradient-to-r from-signal-yellow to-amber-400 text-deep-navy font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
             >
               View Full Curriculum
             </Link>
-            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-warning-amber rounded text-warning-amber font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
+            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-signal-yellow rounded text-signal-yellow font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
               Limited Intake: Next Cohort Starting Soon
             </span>
           </div>

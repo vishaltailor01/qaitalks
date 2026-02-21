@@ -271,11 +271,11 @@ export default async function BlogPostPage({
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
             <Link
               href="/curriculum"
-              className="inline-block px-12 py-4 bg-gradient-to-r from-warning-amber to-amber-400 text-deep-blueprint font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
+              className="inline-block px-12 py-4 bg-gradient-to-r from-signal-yellow to-amber-400 text-deep-navy font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
             >
               View Full Curriculum
             </Link>
-            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-warning-amber rounded text-warning-amber font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
+            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-signal-yellow rounded text-signal-yellow font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
               Limited Intake: Next Cohort Starting Soon
             </span>
           </div>

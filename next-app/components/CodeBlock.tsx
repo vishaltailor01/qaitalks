@@ -18,18 +18,18 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language = 'text' }) => {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative bg-paper-white border-2 border-signal-yellow rounded-2xl shadow-lg my-6 font-mono overflow-x-auto">
       <SyntaxHighlighter
         language={language}
         style={oneDark}
-        customStyle={{ borderRadius: '0.5rem', fontSize: '1rem', padding: '1.5em', margin: 0 }}
+        customStyle={{ borderRadius: '1rem', fontSize: '1rem', padding: '1.5em', margin: 0, background: 'transparent' }}
         showLineNumbers
       >
         {code}
       </SyntaxHighlighter>
       <button
         onClick={handleCopy}
-        style={{ position: 'absolute', top: 8, right: 8, background: '#222', color: '#fff', border: 'none', borderRadius: 4, padding: '0.25em 0.75em', cursor: 'pointer', fontSize: '0.9em' }}
+        className="absolute top-3 right-3 bg-signal-yellow text-deep-navy border-none rounded-lg px-4 py-1 font-semibold shadow-sm text-xs hover:bg-signal-yellow/90 focus:outline-none focus:ring-2 focus:ring-electric-cyan transition"
         aria-label="Copy code block"
       >
         {copied ? 'Copied!' : 'Copy'}

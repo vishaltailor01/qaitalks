@@ -1,6 +1,4 @@
-
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   reactCompiler: true,
 
   // Disable Turbopack for production builds (Cloudflare adapter requires webpack)
@@ -60,5 +58,3 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = nextConfig;
-
-export default nextConfig;

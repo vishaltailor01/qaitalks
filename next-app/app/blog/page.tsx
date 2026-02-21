@@ -58,7 +58,7 @@ export default async function BlogPage() {
         <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-purple-accent/10 rounded-full blur-3xl"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
-          <span className="absolute right-[8%] top-[15%] font-hand text-logic-cyan text-3xl font-bold rotate-[-3deg] animate-float drop-shadow-lg hidden md:block">
+          <span className="absolute right-[8%] top-[15%] font-primary text-logic-cyan text-3xl font-bold rotate-[-3deg] animate-float drop-shadow-lg hidden md:block">
             Daily Deep Dives
           </span>
           <h1 className="text-6xl md:text-7xl font-black text-deep-blueprint mb-6">
@@ -111,7 +111,7 @@ export default async function BlogPage() {
                           </div>
                         )}
                         {index === 0 && (
-                          <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-warning-amber to-amber-400 text-deep-blueprint text-xs font-bold rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
+                          <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-signal-yellow to-amber-400 text-deep-navy text-xs font-bold rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
                             ⭐ Trending
                           </div>
                         )}
@@ -135,9 +135,9 @@ export default async function BlogPage() {
                         </span>
 
                         {/* Title */}
-                        <h3 className="text-xl font-bold text-deep-blueprint mt-3 mb-3 group-hover:text-logic-cyan transition-colors line-clamp-2">
+                        <h2 className="text-xl font-bold text-deep-blueprint mt-3 mb-3 group-hover:text-logic-cyan transition-colors line-clamp-2">
                           {post.title}
-                        </h3>
+                        </h2>
 
                         {/* Description */}
                         <p className="text-sm text-slate-600 leading-relaxed mb-6 line-clamp-3">
@@ -171,11 +171,11 @@ export default async function BlogPage() {
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
             <Link
               href="/curriculum"
-              className="inline-block px-12 py-4 bg-gradient-to-r from-warning-amber to-amber-400 text-deep-blueprint font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
+              className="inline-block px-12 py-4 bg-gradient-to-r from-signal-yellow to-amber-400 text-deep-navy font-bold text-lg border-2 border-deep-blueprint rounded hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_rgba(255,184,0,0.5)] shadow-[4px_4px_0_rgba(255,184,0,0.3)] transition-all duration-200 uppercase tracking-wide"
             >
               View Full Curriculum
             </Link>
-            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-warning-amber rounded text-warning-amber font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
+            <span className="px-6 py-3 bg-deep-blueprint/30 border-2 border-signal-yellow rounded text-signal-yellow font-mono font-bold text-sm backdrop-blur-sm animate-pulse">
               Limited Intake: Next Cohort Starting Soon
             </span>
           </div>

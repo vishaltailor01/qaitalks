@@ -5,7 +5,12 @@ date_created: 2026-02-10
 last_updated: 2026-02-10
 ---
 
+
 # QaiTalk - Project Debug & Health Report
+
+## Design System & Accessibility
+- All UI is refactored to use the Stitch-inspired design system (see `docs/DESIGN_SYSTEM.md`).
+- Accessibility (WCAG 2.1 AA) and responsive design are enforced across the project.
 
 **Generated:** February 10, 2026  
 **System:** Windows 11, Node.js 18+, npm 10+  
@@ -74,7 +79,7 @@ Assets: Optimized
 ```
 
 **⚠️ WARNING (Non-Critical):** Turbopack root directory warning detected
-- **Issue:** Multiple lock files detected (root + next-app)
+- **Issue:** Multiple lock files detected (root + apps/web)
 - **Impact:** Minor build warning only
 - **Recommendation:** Add `turbopack.root` to `next.config.ts` to suppress warning
   ```typescript
@@ -113,7 +118,7 @@ Duration: 3.3 seconds
 ### 2.2 E2E Tests ✅
 
 **Status:** Playwright configured  
-**Test Files:** Located in `next-app/e2e/`
+**Test Files:** Located in `apps/web/e2e/`
 
 **Available E2E Tests:**
 - Homepage smoke test
@@ -244,7 +249,7 @@ QaiTAlk/
 ├── .vscode/                ✅ VS Code settings
 ├── docs/                   ✅ Documentation
 │   └── PRD.md             ✅ NEW: Comprehensive PRD
-├── next-app/               ✅ Main application
+├── apps/web/               ✅ Main application
 │   ├── app/               ✅ Next.js App Router
 │   ├── components/        ✅ React components
 │   ├── lib/               ✅ Utilities and helpers
@@ -269,7 +274,7 @@ QaiTAlk/
 | `tsconfig.json` | ✅ | Strict mode enabled |
 | `.eslintrc.json` | ✅ | Configured (ESLint 9) |
 | `tailwind.config.ts` | ✅ | Tailwind CSS configured |
-| `prisma/schema.prisma` | ✅ | Database schema defined |
+| `apps/web/prisma/schema.prisma` | ✅ | Database schema defined |
 | `package.json` | ✅ | All dependencies present |
 | `.env.example` | ✅ | Database URL configured |
 
@@ -279,7 +284,7 @@ QaiTAlk/
 
 **Environment Variables:**
 ```env
-DATABASE_URL="file:./prisma/dev.db"  ✅
+DATABASE_URL="file:./apps/web/prisma/dev.db"  ✅
 ```
 
 **Recommended Environment Variables (for future features):**
@@ -362,7 +367,7 @@ model BlogPost {
 ```
 
 **Database File:**
-- Location: `prisma/dev.db`
+- Location: `apps/web/prisma/dev.db`
 - Status: ✅ Created and seeded with 11+ blog posts
 - Size: ~50KB (content + metadata)
 
@@ -473,7 +478,7 @@ headers: {
 | Output Directory | ✅ | `.open-next` |
 | Edge Functions | ✅ | Compatible |
 | Database (D1) | ✅ | Prisma adapter installed |
-| Static Assets | ✅ | `public/` directory |
+| Static Assets | ✅ | `apps/web/public/` directory |
 
 ### 10.2 Deployment Checklist
 
@@ -596,7 +601,7 @@ export default {
 npm install
 
 # Start development server
-cd next-app
+cd apps/web
 npm run dev
 
 # Run database seeding

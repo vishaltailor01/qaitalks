@@ -19,19 +19,157 @@
         },
         {
           "title": "The Test Analyst’s Tasks in Risk-Based Testing",
-          "topics": ["Introduction", "Risk Identification", "Risk Assessment", "Risk Mitigation"]
+          "topics": [
+            "Introduction",
+            "Risk Identification",
+            "Risk Assessment",
+            "Risk Mitigation"
+          ]
         },
         {
           "title": "Test Techniques",
-          "topics": ["Introduction", "Black-Box Test Techniques", "Experience-Based Test Techniques", "Applying the Most Appropriate Technique"]
+          "topics": [
+            "Introduction",
+            "Black-Box Test Techniques",
+            "Experience-Based Test Techniques",
+            "Applying the Most Appropriate Technique"
+          ]
         },
         {
           "title": "Testing Software Quality Characteristics",
-          "topics": ["Introduction", "Quality Characteristics for Business Domain Testing"]
+          "topics": [
+            "Introduction",
+            "Quality Characteristics for Business Domain Testing"
+          ]
         },
-        { "title": "Reviews", "topics": ["Introduction", "Using Checklists in Reviews"] },
-        { "title": "Test Tools and Automation", "topics": ["Introduction", "Keyword-Driven Testing", "Types of Test Tools"] }
+        {
+          "title": "Reviews",
+          "topics": [
+            "Introduction",
+            "Using Checklists in Reviews"
+          ]
+        },
+        {
+          "title": "Test Tools and Automation",
+          "topics": [
+            "Introduction",
+            "Keyword-Driven Testing",
+            "Types of Test Tools"
+          ]
+        }
       ]
+    },
+    {
+      "id": "istqb-ctfl-v4-0-1",
+      "title": "ISTQB Certified Tester Foundation Level (CTFL) v4.0.1",
+      "version": "v4.0.1",
+      "type": "foundation",
+      "modules": [
+        { "title": "Fundamentals", "topics": ["Why Testing", "Test Principles", "Fundamental Test Process"] },
+        { "title": "Testing Throughout the SDLC", "topics": ["V-Model, Agile, DevOps", "Test Levels: Unit, Integration, System, Acceptance"] },
+        { "title": "Static Testing", "topics": ["Reviews, Walkthroughs", "Static Analysis"] },
+        { "title": "Test Design Techniques", "topics": ["Black-box Techniques", "White-box Techniques", "Experience-based Techniques"] },
+        { "title": "Test Management", "topics": ["Test Planning", "Monitoring and Control", "Risk and Defect Management"] },
+        { "title": "Tool Support", "topics": ["Tool Types", "Benefits and Risks"] }
+      ]
+    },
+    {
+      "id": "istqb-ctal-ta-v4-0-en-4",
+      "title": "ISTQB CTAL – Test Analyst (CTAL-TA) v4.0",
+      "version": "v4.0",
+      "type": "advanced",
+      "modules": [
+        { "title": "Test Analyst Tasks in the Test Process", "topics": ["Introduction", "Test Analysis", "Test Design", "Test Implementation", "Test Execution"] },
+        { "title": "Risk-Based Testing", "topics": ["Risk Identification", "Risk Assessment", "Risk Mitigation"] },
+        { "title": "Test Techniques", "topics": ["Black-box Techniques", "Experience-based Techniques", "Selecting Techniques"] },
+        { "title": "Quality Characteristics", "topics": ["Business-domain Quality Attributes", "Testability"] },
+        { "title": "Reviews & Checklists", "topics": ["Review Types", "Checklist Use"] },
+        { "title": "Tools & Automation for Test Analysts", "topics": ["Test Management Tools", "Keyword-driven Testing"] }
+      ]
+    },
+    {
+      "id": "istqb-ctal-tta-v4-0",
+      "title": "ISTQB CTAL – Technical Test Analyst (CTAL‑TTA) v4.0",
+      "version": "v4.0",
+      "type": "advanced",
+      "modules": [
+        { "title": "Technical Test Analyst Role", "topics": ["Introduction", "Technical Test Activities"] },
+        { "title": "Structure-based Techniques", "topics": ["White-box Techniques", "Coverage Criteria"] },
+        { "title": "Non-functional Testing", "topics": ["Performance", "Security", "Reliability"] },
+        { "title": "Test Environment and Tools", "topics": ["Test Harnesses", "Automation Frameworks"] }
+      ]
+    },
+    {
+      "id": "istqb-ctal-tm-v3-0",
+      "title": "ISTQB CTAL – Test Manager (CTAL‑TM) v3.0",
+      "version": "v3.0",
+      "type": "advanced",
+      "modules": [
+        { "title": "Test Management", "topics": ["Test Organisation", "Test Planning", "Estimations"] },
+        { "title": "Risk and Stakeholder Management", "topics": ["Risk-based Testing", "Communication"] },
+        { "title": "Metrics & Governance", "topics": ["Test Metrics", "Quality Gates"] },
+        { "title": "Process Improvement", "topics": ["Test Process Assessment", "Tailoring"] }
+      ]
+    },
+    {
+      "id": "istqb-ctal-tae-v2-0",
+      "title": "ISTQB CTAL – Test Automation Engineer (CTAL‑TAE) v2.0",
+      "version": "v2.0",
+      "type": "advanced",
+      "modules": [
+        { "title": "Automation Strategy", "topics": ["Automation Goals", "Return on Investment"] },
+        { "title": "Automation Design", "topics": ["Framework Architecture", "Test Data Management"] },
+        { "title": "Automation Implementation", "topics": ["Tool Selection", "Scripting Best Practices"] },
+        { "title": "Maintenance & Governance", "topics": ["Test Flakiness", "CI/CD Integration"] }
+      ]
+    }
+    {
+      "id": "istqb-ctal-tm-syllabus-v3-0-zkjksan-pdf",
+      "title": "ISTQB_CTAL-TM_Syllabus_v3.0_zKjKsaN.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB_CTAL-TM_Syllabus_v3.0_zKjKsaN.pdf",
+      "pdfPath": "/syllabi/ISTQB_CTAL-TM_Syllabus_v3.0_zKjKsaN.pdf",
+      "rawTextPath": "/syllabi/ISTQB_CTAL-TM_Syllabus_v3.0_zKjKsaN.txt",
+      "extractedAt": "2026-02-20T18:54:20.401Z"
+    },
+    {
+      "id": "istqb-ctfl-syllabus-v4-0-1-pdf",
+      "title": "ISTQB_CTFL_Syllabus_v4.0.1.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB_CTFL_Syllabus_v4.0.1.pdf",
+      "pdfPath": "/syllabi/ISTQB_CTFL_Syllabus_v4.0.1.pdf",
+      "rawTextPath": "/syllabi/ISTQB_CTFL_Syllabus_v4.0.1.txt",
+      "extractedAt": "2026-02-20T18:54:20.412Z"
+    },
+    {
+      "id": "istqb-ctal-ta-syllabus-v4-0-en-4-pdf",
+      "title": "ISTQB-CTAL-TA-Syllabus-v4.0-EN-4.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB-CTAL-TA-Syllabus-v4.0-EN-4.pdf",
+      "pdfPath": "/syllabi/ISTQB-CTAL-TA-Syllabus-v4.0-EN-4.pdf",
+      "rawTextPath": "/syllabi/ISTQB-CTAL-TA-Syllabus-v4.0-EN-4.txt",
+      "extractedAt": "2026-02-20T18:54:20.416Z"
+    },
+    {
+      "id": "istqb-ctal-tta-syllabus-v4-0-pdf",
+      "title": "ISTQB-CTAL-TTA_Syllabus_v4.0.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB-CTAL-TTA_Syllabus_v4.0.pdf",
+      "pdfPath": "/syllabi/ISTQB-CTAL-TTA_Syllabus_v4.0.pdf",
+      "rawTextPath": "/syllabi/ISTQB-CTAL-TTA_Syllabus_v4.0.txt",
+      "extractedAt": "2026-02-20T18:54:20.424Z"
+    },
+    {
+      "id": "istqb-ctal-ta-syllabus-v3-1-2-pdf",
+      "title": "ISTQB_CTAL-TA_Syllabus_v3.1.2.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB_CTAL-TA_Syllabus_v3.1.2.pdf",
+      "pdfPath": "/syllabi/ISTQB_CTAL-TA_Syllabus_v3.1.2.pdf",
+      "rawTextPath": "/syllabi/ISTQB_CTAL-TA_Syllabus_v3.1.2.txt",
+      "extractedAt": "2026-02-20T18:54:20.429Z"
+    },
+    {
+      "id": "istqb-ctal-tae-syllabus-v2-0-pdf",
+      "title": "ISTQB_CTAL-TAE_Syllabus_v2.0.pdf",
+      "source": "c:\\Users\\tailo\\OneDrive\\Desktop\\istqb\\ISTQB_CTAL-TAE_Syllabus_v2.0.pdf",
+      "pdfPath": "/syllabi/ISTQB_CTAL-TAE_Syllabus_v2.0.pdf",
+      "rawTextPath": "/syllabi/ISTQB_CTAL-TAE_Syllabus_v2.0.txt",
+      "extractedAt": "2026-02-20T18:54:20.434Z"
     }
   ]
 }

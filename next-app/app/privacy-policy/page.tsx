@@ -4,38 +4,38 @@ export default function PrivacyPolicyPage() {
   return (
     <main className="prose mx-auto p-8">
       <h1>Privacy Policy</h1>
-      <p>QAi Talks is committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights under GDPR and other privacy laws.</p>
+      <p>At QAi Talks, we take your privacy seriously. Here’s how we look after your details, in plain English.</p>
       <h2>What We Collect</h2>
       <ul>
-        <li>Account information (name, email, OAuth provider)</li>
-        <li>Uploaded CVs and job descriptions</li>
-        <li>Usage analytics (anonymized)</li>
+        <li>Your account details (name, email address, and which sign-in method you use)</li>
+        <li>CVs and job descriptions you upload</li>
+        <li>Anonymous usage data (so we can make QAi Talks better for everyone)</li>
       </ul>
-      <h2>How We Use Your Data</h2>
+      <h2>How We Use Your Information</h2>
       <ul>
-        <li>To provide mentorship and CV review services</li>
-        <li>To improve our platform</li>
-        <li>To comply with legal obligations</li>
+        <li>To provide you with mentoring and CV review services</li>
+        <li>To improve our website and your experience</li>
+        <li>To meet our legal obligations</li>
       </ul>
       <h2>Your Rights</h2>
       <ul>
-        <li>Access your data (via your account dashboard)</li>
-        <li>Request deletion of your data (via account settings or support)</li>
-        <li>Withdraw consent at any time</li>
+        <li>See the information we hold about you (just check your account dashboard)</li>
+        <li>Ask us to delete your data (through your account settings or by contacting support)</li>
+        <li>Change your mind and withdraw consent whenever you like</li>
       </ul>
-      <h2>Data Retention</h2>
+      <h2>How Long We Keep Things</h2>
       <ul>
-        <li>Uploaded CVs are deleted after 30 days or upon user request</li>
-        <li>Account data is deleted upon account closure</li>
+        <li>CVs you upload are deleted after 30 days, or sooner if you ask</li>
+        <li>Your account data is deleted if you close your account</li>
       </ul>
       <h2>Cookies & Tracking</h2>
       <ul>
-        <li>We use cookies for authentication and analytics</li>
-        <li>You can manage cookies in your browser settings</li>
+        <li>We use cookies to keep you signed in and to understand how people use QAi Talks</li>
+        <li>You can control cookies in your browser settings</li>
       </ul>
-      <h2>Contact</h2>
-      <p>For privacy questions or requests, contact <a href="mailto:privacy@qaitalks.com">privacy@qaitalks.com</a></p>
-      <p><em>Last updated: 2026-02-15</em></p>
+      <h2>Contact Us</h2>
+      <p>If you have any questions about your privacy, just drop us a line at <a href="mailto:privacy@qaitalks.com">privacy@qaitalks.com</a>.</p>
+      <p><em>Last updated: 15 February 2026</em></p>
     </main>
   );
 }

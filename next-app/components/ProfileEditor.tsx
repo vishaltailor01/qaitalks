@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useRef } from 'react'
-import { processFile } from '@/lib/fileProcessing'
+// We now delegate file extraction to the server-side ingest endpoint
 import { parseCvFromText } from '@/lib/parseCv'
 
 const DEFAULT_AVATAR = '/default-avatar.png'
@@ -87,17 +87,22 @@ export default function ProfileEditor() {
     setLoading(true)
     setMessage(null)
     try {
-      const res = await processFile(f)
-      if (!res.success) {
-        setMessage(res.error || 'Failed to process file')
-      } else {
-        const parsed = parseCvFromText(res.text || '')
-        if (parsed.about) setAbout(parsed.about)
-        if (parsed.experience) setExperience(parsed.experience)
-        if (parsed.skills) setSkills(parsed.skills)
-        if (parsed.licenses) setCerts(parsed.licenses)
-        setMessage('CV parsed successfully')
+      // Upload file to backend which will extract chunks and return combined text
+      const fd = new FormData()
+      fd.append('file', f, f.name)
+      const resp = await fetch('/ingest/file', { method: 'POST', body: fd })
+      if (!resp.ok) {
+        const t = await resp.text()
+        throw new Error(t || 'Upload failed')
       }
+      const j = await resp.json()
+      const text = Array.isArray(j.chunks) ? j.chunks.map((c: any) => c.chunk).join('\n\n') : ''
+      const parsed = parseCvFromText(text)
+      if (parsed.about) setAbout(parsed.about)
+      if (parsed.experience) setExperience(parsed.experience)
+      if (parsed.skills) setSkills(parsed.skills)
+      if (parsed.licenses) setCerts(parsed.licenses)
+      setMessage('CV parsed successfully')
     } catch (err) {
       setMessage((err as Error).message || 'Unexpected error')
     } finally {
@@ -141,83 +146,94 @@ export default function ProfileEditor() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Profile</h1>
+    <div className="max-w-3xl mx-auto p-6 font-primary">
+      <div className="bg-paper-white rounded-md shadow p-8 border-2 border-signal-yellow">
+          <h1 className="text-3xl font-semibold mb-6 text-deep-navy">Your Profile</h1>
 
-      <div className="flex items-center gap-6 mb-6">
-        <img
-          src={cfResize(imageSrc, 96) || DEFAULT_AVATAR}
-          alt="avatar"
-          width={96}
-          height={96}
-          className="rounded-full object-cover"
-        />
+        <div className="flex items-center gap-6 mb-6">
+            <img
+            src={cfResize(imageSrc, 96) || DEFAULT_AVATAR}
+            alt="avatar"
+            width={96}
+            height={96}
+            className="rounded-full object-cover shadow-md border-2 border-signal-yellow"
+          />
 
-        <div>
-          <label className="block text-sm font-medium">Profile Image</label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-deep-navy mb-2">Profile Image</label>
+            <input className="text-sm border-2 border-signal-yellow rounded-md px-2 py-1" type="file" accept="image/*" onChange={handleImageUpload} title="Upload profile image" />
+            <p className="text-xs text-electric-cyan mt-1">Recommended: square image, max 5MB.</p>
+          </div>
         </div>
-      </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-1">Upload CV (PDF/DOCX/TXT)</label>
-        <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md" onChange={handleCvUpload} />
-      </div>
+        <div className="grid gap-6">
+          <div>
+            <label className="block text-sm font-medium text-deep-navy mb-1">Upload CV (PDF/DOCX/TXT)</label>
+            <input ref={fileRef} type="file" accept=".pdf,.docx,.doc,.txt,.md" onChange={handleCvUpload} className="w-full text-sm border-2 border-signal-yellow rounded-md px-2 py-1" />
+          </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-1">Or import from LinkedIn</label>
-        <LinkedInImporter onImport={handleLinkedIn} />
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-deep-navy mb-1">Or import from LinkedIn</label>
+            <LinkedInImporter onImport={handleLinkedIn} />
+          </div>
 
-      <section className="mb-6">
-        <h2 className="font-medium">About</h2>
-        <textarea className="w-full border rounded p-2 mt-1" rows={4} value={about} onChange={(e) => setAbout(e.target.value)} />
-      </section>
+          <section>
+            <h2 className="font-medium text-deep-navy mb-2">About</h2>
+            <textarea className="w-full border-2 border-signal-yellow rounded-md p-3 mt-1 text-sm" rows={4} value={about} onChange={(e) => setAbout(e.target.value)} title="About you" placeholder="Brief professional summary (2–3 sentences)." />
+          </section>
 
-      <section className="mb-6">
-        <h2 className="font-medium">Experience</h2>
-        <textarea className="w-full border rounded p-2 mt-1" rows={6} value={experience.join('\n')} onChange={(e) => setExperience(e.target.value.split('\n'))} />
-      </section>
+          <section>
+            <h2 className="font-medium text-deep-navy mb-2">Experience</h2>
+            <textarea className="w-full border-2 border-signal-yellow rounded-md p-3 mt-1 text-sm" rows={6} value={experience.join('\n')} onChange={(e) => setExperience(e.target.value.split('\n'))} title="Experience" placeholder="List your roles/companies, one per line (most recent first)." />
+          </section>
 
-      <section className="mb-6">
-        <h2 className="font-medium">Licenses & Certifications</h2>
-        <input className="w-full border rounded p-2 mt-1" value={certs.join(', ')} onChange={(e) => setCerts(e.target.value.split(',').map(s => s.trim()))} />
-      </section>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-medium text-deep-navy mb-2">Licenses & Certifications</h3>
+              <input className="w-full border-2 border-signal-yellow rounded-md p-3 text-sm" value={certs.join(', ')} onChange={(e) => setCerts(e.target.value.split(',').map(s => s.trim()))} title="Licenses & Certifications" placeholder="Comma separated, e.g. ISTQB, AWS, ..." />
+            </div>
 
-      <section className="mb-6">
-        <h2 className="font-medium">Skills</h2>
-        <input className="w-full border rounded p-2 mt-1" value={skills.join(', ')} onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()))} />
-      </section>
+            <div>
+              <h3 className="font-medium text-deep-navy mb-2">Skills</h3>
+              <input className="w-full border-2 border-signal-yellow rounded-md p-3 text-sm" value={skills.join(', ')} onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()))} title="Skills" placeholder="Comma separated, e.g. Java, Selenium, ..." />
+            </div>
+          </div>
 
-      <div className="flex items-center gap-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" disabled={loading} onClick={async () => {
-          setLoading(true)
-          setMessage(null)
-          try {
-            const payload = {
-              image: imageSrc,
-              about,
-              experience: JSON.stringify(experience),
-              skills: JSON.stringify(skills),
-              licenses: JSON.stringify(certs),
-            }
-            const res = await fetch('/api/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            })
-            if (!res.ok) throw new Error('Failed to save profile')
-            setMessage('Profile saved')
-          } catch (err) {
-            setMessage((err as Error).message || 'Save failed')
-          } finally {
-            setLoading(false)
-          }
-        }}>
-          Save Profile
-        </button>
-        {loading && <span>Processing...</span>}
-        {message && <span className="text-sm text-gray-700">{message}</span>}
+          <div className="flex items-center justify-between mt-4">
+            <div>
+              {loading && <span className="text-sm text-electric-cyan">Processing...</span>}
+              {message && <span className="text-sm text-deep-navy ml-3">{message}</span>}
+            </div>
+            <div>
+              <button className="bg-signal-yellow text-deep-navy px-5 py-2 rounded-md font-semibold shadow border-2 border-signal-yellow hover:bg-signal-yellow/90 transition-all duration-300" disabled={loading} onClick={async () => {
+                setLoading(true)
+                setMessage(null)
+                try {
+                  const payload = {
+                    image: imageSrc,
+                    about,
+                    experience: JSON.stringify(experience),
+                    skills: JSON.stringify(skills),
+                    licenses: JSON.stringify(certs),
+                  }
+                  const res = await fetch('/api/profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                  })
+                  if (!res.ok) throw new Error('Failed to save profile')
+                  setMessage('Profile saved')
+                } catch (err) {
+                  setMessage((err as Error).message || 'Save failed')
+                } finally {
+                  setLoading(false)
+                }
+              }}>
+                Save Profile
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -227,8 +243,8 @@ function LinkedInImporter({ onImport }: { onImport: (url: string) => void }) {
   const [url, setUrl] = useState('')
   return (
     <div className="flex gap-2">
-      <input className="flex-1 border rounded p-2" placeholder="https://www.linkedin.com/in/username" value={url} onChange={(e) => setUrl(e.target.value)} />
-      <button className="bg-green-600 text-white px-3 rounded" onClick={() => onImport(url)}>Import</button>
+      <input className="flex-1 border-2 border-signal-yellow rounded-md p-2" placeholder="https://www.linkedin.com/in/username" value={url} onChange={(e) => setUrl(e.target.value)} />
+      <button className="bg-growth-green text-white px-3 rounded-md font-semibold shadow hover:bg-growth-green/90 transition-all duration-300" onClick={() => onImport(url)}>Import</button>
     </div>
   )
 }

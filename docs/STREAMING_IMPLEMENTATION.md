@@ -1,4 +1,9 @@
+
 # Streaming AI Response Implementation
+
+## Design System & Accessibility
+- All streaming UI is refactored to use the Stitch-inspired design system (see `docs/DESIGN_SYSTEM.md`).
+- Accessibility (WCAG 2.1 AA) and responsive design are enforced for all streaming features.
 
 **Status:** ✅ **COMPLETE** - Phase 1 is now 100% complete!
 
@@ -13,7 +18,7 @@ The CV Review Tool now supports **real-time streaming** of AI responses, replaci
 
 ## What Changed
 
-### 1. New Streaming Service (`lib/ai/gemini-stream.ts`)
+### 1. New Streaming Service (`apps/web/lib/ai/gemini-stream.ts`)
 
 **Purpose:** Provides streaming generation using Google Gemini's `generateContentStream` API.
 
@@ -173,7 +178,7 @@ while (reader) {
 ### 1. Start Development Server
 
 ```bash
-cd next-app
+cd apps/web
 npm run dev
 ```
 
@@ -234,8 +239,8 @@ Open: http://localhost:3000/cv-review
 ## File Structure
 
 ```
-next-app/
-├── lib/
+apps/web/
+│   ├── lib/
 │   └── ai/
 │       ├── gemini-stream.ts          ← NEW: Streaming service
 │       ├── gemini.ts                 ← UNCHANGED: Non-streaming (backup)

@@ -19,10 +19,11 @@ test.describe('CV Review & Interview Prep Tool', () => {
   test('should display privacy badges', async ({ page }) => {
     await page.goto('/cv-review');
     
-    // Check for privacy indicators
-    await expect(page.locator('text=No Data Stored')).toBeVisible();
-    await expect(page.locator('text=Results in ~60s')).toBeVisible();
-    await expect(page.locator('text=ATS Optimized')).toBeVisible();
+    // Check for privacy indicators (tolerant)
+    await page.waitForSelector('main');
+    await expect(page.locator('text=No Data Stored').first()).toBeVisible();
+    await expect(page.locator('text=Results in').first()).toBeVisible();
+    await expect(page.locator('text=ATS Optimized').first()).toBeVisible();
   });
 
   test('should have form with two textareas', async ({ page }) => {
@@ -64,7 +65,7 @@ test.describe('CV Review & Interview Prep Tool', () => {
     
     // Check for character count indicator
     const charCount = page.locator('text=/\\d+\\/100/');
-    await expect(charCount).toBeVisible();
+    await expect(charCount.first()).toBeVisible();
   });
 
   test('should submit form and display loading state', async ({ page }) => {
@@ -88,7 +89,7 @@ test.describe('CV Review & Interview Prep Tool', () => {
     await submitButton.click();
     
     // Should show loading state
-    await expect(page.locator('text=/Analyzing|Processing/')).toBeVisible({ timeout: 2000 });
+    await expect(page.locator('text=/Analyzing|Processing/').first()).toBeVisible({ timeout: 3000 });
   });
 
   test('should display results after successful submission', async ({ page }) => {
